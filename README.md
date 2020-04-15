@@ -1,3 +1,5 @@
+# “Talk is cheap. Show me the code."  -- Linus Torvalds
+
 # edgex-club
 
 #### 项目介绍
