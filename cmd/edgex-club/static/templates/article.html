@@ -232,8 +232,8 @@
                                         </div>
                                         <div class="reply_list" style="background-color:#f4f5f5;clear:both;padding:5px;">
                                             {{range $cId,$replys := $.ReplysMap}} {{if eq $cId $comment.Id.Hex}} {{range $idex,$r := $replys}}
-                                            <div class="per_reply_item" id="$r.Id.Hex" userName="{{$r.FromUserName}}" style="border-bottom:1px solid gray;margin-bottom:5px;">
-                                                <div class="">'
+                                            <div class="per_reply_item" id="{{$r.Id.Hex}}" userName="{{$r.FromUserName}}" style="border-bottom:1px solid gray;margin-bottom:5px;">
+                                                <div class="">
                                                     <a href="/user/{{$r.FromUserName}}" target="_blank">{{$r.FromUserName}}：</a> 回复<a href="/user/{{$r.ToUserName}}" target="_blank">@{{$r.ToUserName}}：</a> {{$r.Content}}
                                                 </div>
                                                 <div class="" style="clear:right;">
