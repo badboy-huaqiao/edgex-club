@@ -1,0 +1,203 @@
+<!-- 
+// Copyright © 2020-2021 https://www.edgexfoundry.club. All Rights Reserved.
+// SPDX-License-Identifier: GPL-2.0 
+-->
+
+{{define "head"}}
+<title>EdgeXFoundry中国社区</title>
+<link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_img.png" style="width:62px;height:62px;" />
+<link href="/public/vendors/markdown/editor/css/editormd.min.css" rel="stylesheet">
+<style media="screen">
+    * {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+    
+    .new_article_main {
+        margin-top: 75px;
+    }
+    
+    a {
+        color: inherit;
+        text-decoration: none!important;
+    }
+</style>
+{{end}} {{define "body"}}
+
+<div class="new_article_main">
+    <div class="container">
+        <div class="input-group input-group-lg" style="margin-bottom:7px;width:100%;">
+            <input id="new_article_title" value="{{if .ArticleTitle}}{{.ArticleTitle}}{{else}}{{end}}" type="text" class="form-control" placeholder="文章标题">
+            <input id="article_id_hidden" type="text" style="display:none" {{if .ArticleId}}value="{{.ArticleId}}" {{else}}{{end}}>
+        </div>
+        <div class="new_article_content" id="test-editormd">
+            <textarea style="display:none;">### Hello EdgeX Foundry !</textarea>
+        </div>
+
+        <div class="" style="margin-bottom:10px;">
+            <!-- <div class="" style="display:inline-block;">
+          文章类型&nbsp;&nbsp;
+          <select class="form-control" style="width:220px;display:inline-block;">
+            <option>请选择</option>
+            <option value="原创">原创</option>
+            <option value="转载">转载</option>
+            <option value="翻译">翻译</option>
+          </select>
+        </div> -->
+            <div class="" style="display:inline-block;">
+                帖子分类&nbsp;&nbsp;
+                <select id="articleType" class="form-control" style="width:220px;display:inline-block;">
+            <option value="">请选择</option>
+            <option value="综合">综合</option>
+            <option value="视频">视频</option>
+            <option value="讨论">讨论</option>
+            <option value="导出微服务">导出微服务</option>
+            <option value="核心微服务">核心微服务</option>
+            <option value="支持微服务">支持微服务</option>
+            <option value="设备微服务">设备微服务</option>
+            <option value="其他">其他</option>
+          </select>
+            </div>
+        </div>
+        <div class="">
+            <button type="button" class="btn btn-default" name="button" onclick="pushArticle()" style="color:rgb(148, 44, 73);">发布</button>
+            <button type="button" class="btn btn-default" name="button" onclick="saveArticle()" style="color:rgb(148, 44, 73);">保存</button>
+            <button type="button" class="btn btn-default" name="button" onclick="backToHome()">返回</button>
+        </div>
+    </div>
+</div>
+<div class="modal" data-backdrop="static" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">提示</h4>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var testEditor;
+
+    $(document).ready(function() {
+        $("#articleType").find("option[value = '{{if .Type}}{{.Type}}{{else}}{{end}}']").attr("selected", "selected");
+        testEditor = editormd("test-editormd", {
+            markdown: '{{if .MD}}{{.MD}}{{else}}{{end}}',
+            // htmlDecode: "style,script,iframe",
+            // taskList: true,
+            // tex: true,
+            // flowChart: true,
+            // sequenceDiagram: true,
+            width: "100%",
+            height: 700,
+            syncScrolling: "single",
+            saveHTMLToTextarea: true,
+            path: "/vendors/markdown/editor/lib/",
+            toolbarIcons: function() {
+                // Or return editormd.toolbarModes[name]; // full, simple, mini
+                // Using "||" set icons align right.
+                return ["undo", "redo", "|",
+                    "bold", "del", "italic", "quote", "ucwords", "uppercase", "lowercase", "|",
+                    "h1", "h2", "h3", "h4", "h5", "|",
+                    "list-ul", "list-ol", "hr", "|",
+                    "link", "reference-link", "code", "preformatted-text", "code-block", "table", "html-entities", "|",
+                    "clear", "search", "|",
+                    "||", "preview", "watch",
+                ]
+            },
+        });
+    });
+    var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
+
+    function pushArticle() {
+        articleCommit(true);
+    }
+
+    function saveArticle() {
+        articleCommit(false);
+    }
+
+    function articleCommit(posted) {
+
+        $(this).prop("disabled", true);
+        if (!edgexClubMainModule.loginIsVaild) {
+            window.location.href = "/login.html"
+        }
+
+        var md = testEditor.getMarkdown();
+        if (md == "") {
+            $('#myModal div.modal-body').empty();
+            $('#myModal div.modal-body').append("  请填写文章内容！");
+            $('#myModal').modal('show');
+            return
+        }
+        if ($("#new_article_title").val().trim() == "") {
+            $('#myModal div.modal-body').empty();
+            $('#myModal div.modal-body').append("  请填写文章标题！");
+            $('#myModal').modal('show');
+            return;
+        }
+        if ($("#articleType").val().trim() == "") {
+            $('#myModal div.modal-body').empty();
+            $('#myModal div.modal-body').append(" 请选择分类！ ");
+            $('#myModal').modal('show');
+            return;
+        }
+
+        var article = {}
+        article["title"] = $("#new_article_title").val();
+        article["type"] = $("#articleType").val();
+        article["content"] = md;
+        article["posted"] = posted;
+        article["userName"] = userInfo.name;
+        //更新文章
+        $.ajax({
+            url: '/api/v1/auth/article/' + $("#article_id_hidden").val().trim(),
+            type: "PUT",
+            data: JSON.stringify(article),
+            contentType: 'text/plain',
+            success: function(data) {
+                if (posted) {
+                    $('#myModal div.modal-body').empty();
+                    $('#myModal div.modal-body').append("  发布成功！");
+                    $('#myModal').modal('show');
+                    window.setTimeout(function() {
+                        window.location.href = "/user/" + userInfo.name;
+                    }, 1500);
+                } else {
+                    $('#myModal div.modal-body').empty();
+                    $('#myModal div.modal-body').append("  保存成功！");
+                    $('#myModal').modal('show');
+                }
+            },
+            statusCode: {
+                3001: function() {
+                    $('#myModal div.modal-body').empty();
+                    $('#myModal div.modal-body').append("  请文明发言！");
+                    $('#myModal').modal('show');
+                }
+            }
+        });
+    }
+
+    function backToHome() {
+        window.location.href = "/user/" + userInfo.name;
+    }
+</script>
+<script src="/public/vendors/markdown/editor/lib/marked.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/prettify.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/raphael.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/underscore.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/sequence-diagram.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/flowchart.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/jquery.flowchart.min.js"></script>
+<script type="text/javascript" src="//publicvendors/markdown/editor/editormd.js"></script>
+{{end}}

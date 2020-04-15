@@ -1,0 +1,27 @@
+<!-- 
+// Copyright © 2020-2021 https://www.edgexfoundry.club. All Rights Reserved.
+// SPDX-License-Identifier: GPL-2.0 
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>EdgeXFoundry中国社区</title>
+    <script type="text/javascript">
+      (function(){
+        var token = {{.Token}};
+        var userInfo = {{.UserInfo}};
+        window.localStorage.setItem("edgex-club-token",token);
+        window.localStorage.setItem("edgex-club-userInfo",userInfo);
+        // var userHistoryPage = window.localStorage.getItem("edgex-club-user-history");
+        // window.localStorage.removeItem("edgex-club-user-history");
+        var userHistoryPage = decodeURI({{.UserPrePage}}); 
+        window.location.href = userHistoryPage;
+      })();
+    </script>
+  </head>
+  <body>
+
+  </body>
+</html>

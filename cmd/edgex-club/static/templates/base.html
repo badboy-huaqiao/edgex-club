@@ -1,0 +1,28 @@
+<!-- 
+// Copyright © 2020-2021 https://www.edgexfoundry.club. All Rights Reserved.
+// SPDX-License-Identifier: GPL-2.0 
+-->
+
+{{define "base"}}
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="icon" href="data:;base64,=">
+    <link rel="stylesheet" href="/public/vendors/bootstrap/css/bootstrap.min.css">
+    <link href="/public/vendors/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/public/vendors/markdown/editor/css/editormd.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/public/css/main.css"> {{template "head" .}}
+
+    <script type="text/javascript" src="/public/vendors/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/public/vendors/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/public/js/util.js"></script>
+    <script type="text/javascript" src="/public/js/main.js"></script>
+</head>
+
+<body style="background-color:#f4f5f5;">
+    {{template "header_nav" .}} {{template "body" .}} {{block "footer" .}} {{end}}
+</body>
+
+</html>
+{{end}}

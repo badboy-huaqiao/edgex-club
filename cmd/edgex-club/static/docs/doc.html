@@ -1,0 +1,169 @@
+<!-- 
+// Copyright © 2020-2021 https://www.edgexfoundry.club. All Rights Reserved.
+// SPDX-License-Identifier: GPL-2.0 
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>EdgeX官方文档</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/img/bg_img.png" style="width:62px;height:62px;" />
+    <link rel="stylesheet" href="/vendors/bootstrap/css/bootstrap.min.css">
+    <link href="/vendors/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <style media="screen">
+        * {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+        
+        div.header a {
+            color: inherit;
+            text-decoration: none!important;
+        }
+        
+        div.docs-trans {
+            margin-top: 80px;
+        }
+        
+        div.docs-translation-body {
+            margin-left: 50px;
+        }
+        
+        div.docs-trans ul.level_1>li {
+            font-weight: blod;
+            font-size: medium;
+        }
+        
+        div.docs-trans ul.level_2>li {
+            text-indent: 2%;
+            font-weight: blod;
+            font-size: medium;
+        }
+    </style>
+</head>
+
+<body style="background-color:#f4f5f5">
+    <!--导航栏 section begin----------------------->
+    <div class="header">
+        <div class="container">
+            <div class="title" style="display:inline-block;">
+                <a href="/"><i class="fa fa-home fa-fw"></i>EdgeX Foundry中国社区</a>
+            </div>
+            <!-- <div class="title" style="display:inline-block;">
+          <a href="/docs/doc.html" target="_blank"><i class="fa fa-hom fa-fw"></i>官方文档</a>
+        </div> -->
+
+            <div style="display:inline-block;" class="pull-right">
+                <div class="header_post">
+                    <a><span><i class="fa fa-edit fa-fw"></i>发帖</span></a>
+                </div>
+                <div class="header_user" style="display:none; position:relative!important;">
+                    <div class="dropdown">
+                        <img src="" alt="" style="width:22px;height:22px;margin:0;margin-left:5px;padding:0;border-radius:15%;border:1px solid rgb(148, 44, 73, 0.5);">
+                        <span class="badge" style="display:none;position:relative;left:-10px;top:-10px;background-color:red!important;">99+</span>
+                    </div>
+                </div>
+                <div class="header_login" style="margin-left:5px;">
+                    <a><span>登录</span></a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!--导航栏 section end----------------------->
+
+    <div class="docs-trans container">
+        <div class="panel panel-default">
+            <div class="panel-heading">EdgeX Foundry官方教程翻译</div>
+            <div class="panel-body">
+                <div class="page-header">
+                    <h2>欢迎访问EdgeX Foundry中文文档！ <small><a href="http://docs.edgexfoundry.org" target="_blank">英文文档</a></small></h2>
+                </div>
+                <br>
+                <div class="docs-translation-body">
+                    <!-- <ul class="level_1">
+               <li><a href="#">1. 快速开始</a></li>
+               <li>
+                 <ul class="level_2">
+                   <li><a href="#">1.1 准备</a></li>
+                   <li><a href="#">1.2 连接一个设备</a></li>
+                   <li><a href="#">1.3 连接一个应用</a></li>
+                   <li><a href="#">1.4 控制设备</a></li>
+                   <li><a href="#">1.5 下一步</a></li>
+                 </ul>
+               </li>
+
+               <li><a href="#">2. 简介</a></li>
+               <li>
+                 <ul class="level_2">
+                   <li><a href="#"></a></li>
+                 </ul>
+               </li>
+             </ul> -->
+
+                </div>
+                <div>
+                    <h3>参与翻译，贡献力量</h3>
+                    <div style="margin-left:50px;">
+                        <h5><a href="https://github.com/badboy-huaqiao/edgex-foundry-doc-translation" target="_blank">我来翻译</a></h5>
+                        <h5><a href="https://github.com/badboy-huaqiao/edgex-foundry-doc-translation" target="_blank">我来校对</a></h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="text/javascript" src="/vendors/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/vendors/bootstrap-4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/util.js"></script>
+    <script type="text/javascript" src="/js/main.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $.ajax({
+                url: '/docs/data.json',
+                type: 'GET',
+                dataType: "text",
+                success: function(data) {
+                    renderTranslationList(data);
+                },
+                error: function() {
+                    console.log("====error!")
+                }
+            });
+        });
+
+        function sortId(a, b) {
+            return a.order - b.order
+        }
+
+        function renderTranslationList(data) {
+            // debugger
+            $(".docs-translation-body").empty();
+            var d = JSON.parse(data);
+            d.sort(sortId)
+            var row = '<ul class="level_1">';
+            $.each(d, function(i, v) {
+                row += '<li><a href="#" target="_blank">' + v.order + ". " + v.name + '</a></li>';
+                if (v.children) {
+                    v.children.sort(sortId);
+                    row += '<li><ul class="level_2">';
+                    $.each(v.children, function(ii, vv) {
+                        row += '<li><a href="#" target="_blank">' + vv.order + ". " + vv.name + '</a></li>';
+                    });
+                    row += '</ul></li>';
+                }
+            });
+            row += '</ul>';
+
+            $(".docs-translation-body").append(row);
+        }
+    </script>
+</body>
+
+</html>

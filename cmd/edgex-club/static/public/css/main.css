@@ -1,0 +1,214 @@
+/*滚动条 start*/
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 4px;
+    background-color: #DCDCDC!important;
+}
+
+
+/*定义滚动条轨道 内阴影+圆角*/
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    background: #fff;
+}
+
+
+/*定义滑块 内阴影+圆角*/
+
+::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
+    background-color: rgba(220, 220, 220, 0.7);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    border-radius: 3px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
+    background-color: rgba(220, 220, 220, 1);
+}
+
+.header {
+    background-color: #24292e!important;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 60px;
+    border-bottom: 1px solid #fcfcfc;
+    z-index: 999;
+    /*min-width: 700px;*/
+    justify-content: space-between!important;
+    /*border-top: 2px solid #942c49!important;*/
+}
+
+.header_user,
+.header_login,
+.header_post {
+    font-size: large;
+    margin-top: 17px;
+    color: white !important;
+    /*background-color: #942c49!important;*/
+    height: 40px;
+    /*text-align: right;*/
+    display: inline-block;
+    /*padding-left: 60px;*/
+}
+
+.header_user a:hover,
+.header_login a:hover,
+.header_post a:hover {
+    cursor: default;
+    color: hsla(0, 0%, 100%, .75);
+}
+
+.title {
+    font-size: large;
+    margin-top: 17px;
+    color: white !important;
+    /*background-color: #942c49!important;*/
+    height: 40px;
+    /*text-align: center;*/
+}
+
+.title-l {
+    font-size: normal;
+    margin-top: 17px;
+    margin-left: 5px;
+    color: white !important;
+    height: 40px;
+}
+
+.title a:hover,
+.title-l a:hover {
+    cursor: default;
+    color: hsla(0, 0%, 100%, .75);
+}
+
+.center {
+    /*position: relative;*/
+    margin-top: 75px;
+}
+
+.welcome {
+    background-image: url(/public/img/bg_img.png);
+    background-attachment: fixed;
+    background-position: 85% 5%;
+    background-repeat: no-repeat;
+    background-size: 600px 360px;
+    background-origin: padding-box;
+    -webkit-background-origin: padding-box;
+    /*background-clip:content-box;*/
+    /*background-color: #d3bdd0!important;*/
+    background-color: rgba(148, 44, 73, 0.1)!important;
+    /*height: 260px;*/
+    /*margin: 0;*/
+    /*padding-left: 40px;*/
+}
+
+.welcome div {
+    color: white;
+    font-size: large;
+}
+
+.article_main {
+    /*margin-top: 15px;*/
+    padding-top: 8px;
+    height: 40px;
+    border-bottom: 1px solid #942c49!important;
+    background-color: white;
+}
+
+.article_main span {
+    font-size: medium;
+}
+
+.article_list {
+    /*position: relative;*/
+    margin-top: 10px;
+}
+
+
+/*.article_body {
+  position: relative;
+  width: 100%;
+
+  height: 80px;
+  padding-left: 10px;
+  padding-top: 10px;
+  border-bottom:  1px solid #d3bdd0;
+  background-color: white;
+  overflow: hidden;
+}*/
+
+.article_body:hover {
+    background-color: rgba(148, 44, 73, 0.1);
+    /*background-color: #d3bdd0;*/
+}
+
+.article_title {
+    /*position: absolute;
+  top: 10px;
+  left: 10%;
+  right: 0;*/
+    width: 100%;
+    text-overflow: ellipsis!important;
+    white-space: nowrap!important;
+    /*overflow: hidden;
+  display: inline-block;*/
+    /*font-size: medium;
+  font-weight: bold;*/
+}
+
+.article_title_img {
+    position: absolute;
+    top: 7px;
+    left: -5px;
+    display: inline-block;
+}
+
+div.article_title_img img {
+    width: 90px;
+    height: 65px;
+}
+
+.article_intro {
+    position: absolute;
+    left: 10%;
+    right: 0;
+    bottom: 10px;
+    /*display: inline-block;*/
+    /*margin-left: 57px;*/
+}
+
+.announcement {
+    padding: 5px 5px;
+    /*margin-top: 15px;*/
+    /*width: 100%;
+  height: 800px;*/
+    background-color: white;
+}
+
+.announcement:hover {
+    background-color: rgba(148, 44, 73, 0.1);
+}
+
+.x-hot-article li {
+    padding: 3px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+a {
+    color: inherit;
+    text-decoration: none!important;
+    outline: 0;
+}
+
+a:visited {
+    color: inherit;
+    text-decoration: none!important;
+    outline: 0;
+}

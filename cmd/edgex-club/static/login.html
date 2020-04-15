@@ -1,0 +1,152 @@
+<!-- 
+// Copyright © 2020-2021 https://www.edgexfoundry.club. All Rights Reserved.
+// SPDX-License-Identifier: GPL-2.0 
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>登录</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/img/bg_img.png" style="width:62px;height:62px;" />
+    <link rel="stylesheet" href="/vendors/bootstrap/css/bootstrap.min.css">
+    <link href="/vendors/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <style media="screen">
+        .login_form {
+            /*margin-top: 10px;*/
+            width: 200px;
+            height: 200px;
+            /*background-color: #f4f5f5!important;*/
+        }
+        
+        .loginbygithub {
+            margin-top: 90px;
+            width: 400px;
+            height: 200px;
+        }
+        
+        .logindesc {
+            font-size: large;
+            font-weight: bolder;
+            border-bottom: 3px solid gray;
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px 30px;
+        }
+        
+        .login_bg {
+            background-image: url(/img/bg_img.png);
+            background-attachment: fixed;
+            background-position: 10% 20%;
+            background-repeat: no-repeat;
+            background-size: 650px 400px;
+            background-color: #f4f5f5!important;
+            height: 400px;
+            margin: 0;
+            padding-left: 40px;
+        }
+        
+        .login_shield {
+            display: none;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(244, 245, 245, 0.7);
+            z-index: 999;
+        }
+    </style>
+    <script type="text/javascript" src="/vendors/jquery/jquery.min.js"></script>
+    <script type="text/javascript">
+        function onloginbygithub() {
+            $("div.login_shield").show();
+            var userPage = document.referrer;
+
+            if (userPage == "https://www.edgexfoundry.club/login.html") {
+                userPage = "https://www.edgexfoundry.club";
+            }
+            window.localStorage.setItem("edgex-club-user-history", userPage)
+            var stateStr = encodeURI(userPage);
+            var href = "https://github.com/login/oauth/authorize?client_id=173d78b242d4fc35aca9&amp;scope=user&amp;state=" + stateStr;
+            window.location.href = href
+        }
+
+        function login() {
+            //debugger
+            $("div.login_shield").show();
+            var userName = $("#userName").val();
+            var userPwd = $("#userPwd").val();
+            var param = {
+                "name": userName,
+                "password": userPwd
+            }
+            var userPage = document.referrer;
+            $.ajax({
+                url: '/api/v1/login',
+                type: 'POST',
+                data: JSON.stringify(param),
+                success: function(data) {
+                    //debugger
+                    window.localStorage.setItem("edgex-club-token", data["token"])
+                    window.localStorage.setItem("edgex-club-userInfo", JSON.stringify(data["userInfo"]))
+                    window.location.href = document.referrer
+                },
+                error: function(data) {
+                    // debugger
+                    alert("登陆失败")
+                }
+            });
+        }
+    </script>
+</head>
+
+<body class="login_bg">
+    <div class="login_shield">
+
+    </div>
+    <div class="">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6 col-md-6 col-lg-6">
+                    <form class="login_form">
+                        <div class="form-group">
+                            <label for="userName">用户名</label>
+                            <input type="text" class="form-control" id="userName" placeholder=" ">
+
+                        </div>
+                        <div class="form-group">
+                            <label for="userPwd">密码</label>
+                            <input type="password" class="form-control" id="userPwd" placeholder="">
+                        </div>
+
+                        <button type="button" onclick="login();" class="btn">Submit</button>
+                    </form>
+                </div>
+                <div class="col-sm-6 col-md-6 col-lg-6">
+                    <div class="loginbygithub">
+                        <div class="logindesc">
+                            <span>第三方授权登陆</span>
+                        </div>
+                        <div class="" style="text-align:center;">
+                            <a onclick="onloginbygithub()">
+                                <img src="/img/github.svg" alt="" style="max-width: 64px; max-height: 64px">
+                            </a>
+                        </div>
+                        <div class="" style="text-align:center;margin-top:30px;">
+                            关注社区公号，加入EdgeX Foundry中国社区纯技术交流微信群
+                            <div class="" style="margin-top:20px;">
+                                <img src="/img/edgexfoundrywechat.png" alt="" style="width:200px;height:200px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
