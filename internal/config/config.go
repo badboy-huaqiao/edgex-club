@@ -16,7 +16,8 @@ type Service struct {
 	Labels                    []string `toml:"Labels"`
 	StartupMsg                string   `toml:"StartupMsg"`
 	DefaultStaticResourcePath string   `toml:"DefaultStaticResourcePath"`
-	JWTKey                    string   `toml:"JWTKey"`
+	JWTPrivKey                string   `toml:"JWTPrivKey"`
+	JWTPubKey                 string   `toml:"JWTPubKey"`
 }
 
 type Database struct {

@@ -5,6 +5,7 @@ package main
 
 import (
 	"edgex-club/internal"
+	"edgex-club/internal/authorization"
 	"edgex-club/internal/config"
 	"edgex-club/internal/core"
 	"edgex-club/internal/repository"
@@ -35,9 +36,11 @@ func main() {
 		log.Println("failed connect to db!")
 	}
 
+	authorization.InitAuth()
+
 	//用户访问限制功能，定时清除3分钟内已经被锁定的用户，
 	//防止map缓存越过内存边界
-	go core.CleanupVisitors()
+	// go core.CleanupVisitors()
 
 	if *isProd {
 		go func() {
@@ -66,7 +69,7 @@ func main() {
 	} else {
 
 		server := &http.Server{
-			Handler:      core.GeneralFilter(core.Limit(r)),
+			Handler:      core.GeneralFilter(r),
 			Addr:         ":8080",
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,

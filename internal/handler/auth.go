@@ -6,7 +6,6 @@ package handler
 import (
 	"bytes"
 	"edgex-club/internal/authorization"
-	"edgex-club/internal/config"
 	"edgex-club/internal/model"
 	"edgex-club/internal/repository"
 	"encoding/json"
@@ -17,7 +16,6 @@ import (
 	"strconv"
 	"strings"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	mux "github.com/gorilla/mux"
 )
 
@@ -38,15 +36,13 @@ func ValidToken(w http.ResponseWriter, r *http.Request) {
 	token := vars["token"]
 
 	var isVaild string
-	jwtToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return config.Config.Service.JWTKey, nil
-	})
+	_, ok := authorization.CheckToken(token)
 
 	//包括超时、被篡改等，都会无效
-	if err != nil || !jwtToken.Valid {
-		isVaild = "0" //无效
-	} else {
+	if ok {
 		isVaild = "1" //有效
+	} else {
+		isVaild = "0" //无效
 	}
 
 	w.Header().Set("Content-Type", "text/plain;charset=utf-8")
@@ -134,6 +130,11 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 
 	var creds model.Credentials
 
+	creds.Name = u.Name
+	creds.AvatarUrl = u.AvatarUrl
+	creds.Id = u.Id.Hex()
+	credsByte, err := json.Marshal(creds)
+
 	token, err := authorization.NewToken(creds)
 	if err != nil {
 		log.Println("生成token失败！")
@@ -141,11 +142,6 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("User login: %v", u)
-
-	creds.Name = u.Name
-	creds.AvatarUrl = u.AvatarUrl
-	creds.Id = u.Id.Hex()
-	credsByte, err := json.Marshal(creds)
 
 	t, _ := template.ParseFiles("static/redirect.html")
 	data := ReturnLoginUserToPageData{
@@ -166,8 +162,8 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 func getGithubTokenByCode(code string) string {
 	url := "https://github.com/login/oauth/access_token"
 	param := make(map[string]string, 10)
-	param["client_id"] = "173d78b242d4fc35aca9"
-	param["client_secret"] = "a35c510a599f19c6041325bcb7b3579072eb9228"
+	param["client_id"] = "8dc598397ad0cc13bed8"
+	param["client_secret"] = "5d4ceb59b837b846cfd5ce7416af5dbc8a89b241"
 	param["code"] = code
 
 	bytesData, err := json.Marshal(param)

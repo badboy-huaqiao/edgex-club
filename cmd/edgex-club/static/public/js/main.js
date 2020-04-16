@@ -104,7 +104,7 @@ var mainModuleBtnGroup = {
     post: function() {
         if (edgexClubMainModule.loginIsVaild) {
             var user = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
-            window.location.href = "/api/v1/auth/article/add";
+            window.location.href = "/article/add";
         } else {
             window.location.href = "/login.html"
         }

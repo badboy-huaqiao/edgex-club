@@ -6,8 +6,6 @@
 {{define "head"}}
 <title>EdgeXFoundry中国社区</title>
 <link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_img.png" style="width:62px;height:62px;" />
-<link rel="stylesheet" href="/public/vendors/bootstrap/css/bootstrap.min.css">
-<link href="/public/vendors/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="/public/vendors/markdown/editor/css/editormd.min.css" rel="stylesheet">
 <link href="/public/vendors/markdown/editor/css/editormd.preview.min.css" rel="stylesheet">
 
@@ -226,8 +224,8 @@
                                     <div class="comment_opts">
                                         <div class="comment_time" style="float:left;margin-top:5px;display:inline-block;"><span style="color:rgba(148, 44, 73, 0.5);">{{$comment.Created | fdate}}</span></div>
                                         <div class="comment_reply_opts" onclick="showReply()" style="float:right;color:rgba(148, 44, 73, 0.5);display:inline-block;">回复</div>
-                                        <div class="pre_reply" toUserName="' + data.userName + '" style="background-color:#f4f5f5;display:none;clear:both;padding:5px;height:80px;margin:8px 0;">
-                                            <textarea name="name" class="reply_context" style="outline:none;" placeholder="回复@' + data.userName + '："></textarea>
+                                        <div class="pre_reply" toUserName="{{$comment.UserName}}" style="background-color:#f4f5f5;display:none;clear:both;padding:5px;height:80px;margin:8px 0;">
+                                            <textarea name="name" class="reply_context" style="outline:none;" placeholder="回复@{{$comment.UserName}}："></textarea>
                                             <div class="commit_reply" onclick="reply(event)" style="float:right;color:rgba(148, 44, 73, 0.5);">提交回复</div>
                                         </div>
                                         <div class="reply_list" style="background-color:#f4f5f5;clear:both;padding:5px;">

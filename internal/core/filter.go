@@ -16,6 +16,10 @@ func GeneralFilter(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 
+		if path == "/login.html" || path == "/redirect.html" {
+			http.FileServer(http.Dir("static")).ServeHTTP(w, r)
+			return
+		}
 		if strings.HasPrefix(path, "/public/") {
 			http.FileServer(http.Dir("static")).ServeHTTP(w, r)
 			return
@@ -31,13 +35,15 @@ func GeneralFilter(h http.Handler) http.Handler {
 				}
 				token = tokenCookie.Value
 			}
-			claims := &authorization.Claims{}
+			claims := &authorization.CustomClaims{}
 			ok := false
-			if ok, claims = authorization.CheckToken(token); !ok {
+			if claims, ok = authorization.CheckToken(token); !ok {
 				http.Error(w, errors.NewErrUnauthorize().Error(), http.StatusUnauthorized)
 				return
 			}
 			credsByte, err := json.Marshal(claims.Credentials)
+
+			log.Printf("credsByte========%v", string(credsByte))
 
 			if err != nil {
 				log.Println("转换creds失败！")

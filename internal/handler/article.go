@@ -209,6 +209,7 @@ func FindAllArticlesByUser(w http.ResponseWriter, r *http.Request) {
 
 	var articles []model.Article
 	if creds.Id == userId {
+		log.Println("====================")
 		articles = repo.ArticleRepos.FindAllArticlesByUser(userId, false)
 	} else {
 		articles = repo.ArticleRepos.FindAllArticlesByUser(userId, true)

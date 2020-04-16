@@ -9,9 +9,9 @@
 <head>
     <meta charset="utf-8">
     <title>登录</title>
-    <link rel="shortcut icon" type="image/x-icon" href="/img/bg_img.png" style="width:62px;height:62px;" />
-    <link rel="stylesheet" href="/vendors/bootstrap/css/bootstrap.min.css">
-    <link href="/vendors/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_img.png" style="width:62px;height:62px;" />
+    <link rel="stylesheet" href="/public/vendors/bootstrap/css/bootstrap.min.css">
+    <link href="/public/vendors/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
     <style media="screen">
         .login_form {
@@ -59,7 +59,7 @@
             z-index: 999;
         }
     </style>
-    <script type="text/javascript" src="/vendors/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/public/vendors/jquery/jquery.min.js"></script>
     <script type="text/javascript">
         function onloginbygithub() {
             $("div.login_shield").show();
@@ -70,7 +70,7 @@
             }
             window.localStorage.setItem("edgex-club-user-history", userPage)
             var stateStr = encodeURI(userPage);
-            var href = "https://github.com/login/oauth/authorize?client_id=173d78b242d4fc35aca9&amp;scope=user&amp;state=" + stateStr;
+            var href = "https://github.com/login/oauth/authorize?client_id=8dc598397ad0cc13bed8&amp;scope=user&amp;state=" + stateStr;
             window.location.href = href
         }
 
@@ -132,13 +132,13 @@
                         </div>
                         <div class="" style="text-align:center;">
                             <a onclick="onloginbygithub()">
-                                <img src="/img/github.svg" alt="" style="max-width: 64px; max-height: 64px">
+                                <img src="/public/img/github.svg" alt="" style="max-width: 64px; max-height: 64px">
                             </a>
                         </div>
                         <div class="" style="text-align:center;margin-top:30px;">
                             关注社区公号，加入EdgeX Foundry中国社区纯技术交流微信群
                             <div class="" style="margin-top:20px;">
-                                <img src="/img/edgexfoundrywechat.png" alt="" style="width:200px;height:200px;">
+                                <img src="/public/img/edgexfoundrywechat.png" alt="" style="width:200px;height:200px;">
                             </div>
                         </div>
                     </div>

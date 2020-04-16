@@ -7,7 +7,10 @@
 
 <title>EdgeXFoundry中国社区</title>
 <link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_img.png" style="width:62px;height:62px;" />
-
+<link href="/public/vendors/markdown/editor/css/editormd.min.css" rel="stylesheet">
+<link href="/public/vendors/markdown/editor/css/editormd.preview.min.css" rel="stylesheet">
+<script type="text/javascript" src="/public/vendors/showdown/dist/showdown.min.js.map"></script>
+<script type="text/javascript" src="/public/vendors/showdown/dist/showdown.min.js"></script>
 <style media="screen">
     * {
         -webkit-box-sizing: border-box;
@@ -100,7 +103,7 @@
             height: 700,
             syncScrolling: "single",
             saveHTMLToTextarea: true,
-            path: "/vendors/markdown/editor/lib/",
+            path: "/public/vendors/markdown/editor/lib/",
             toolbarIcons: function() {
                 // Or return editormd.toolbarModes[name]; // full, simple, mini
                 // Using "||" set icons align right.

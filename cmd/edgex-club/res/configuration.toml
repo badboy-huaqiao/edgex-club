@@ -4,7 +4,8 @@ Port = 8080
 Labels = ["edgex club"]
 OpenMsg = "edgex club server started"
 StaticResourcePath = "./static"
-JWTKey = "edgexfoundry.club"
+JWTPrivKey = "res/rsa/app.rsa"
+JWTPubKey = "res/rsa/app.rsa.pub"
 
 [Database]
 Host = "39.98.39.186"
