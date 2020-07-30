@@ -6,38 +6,11 @@
 {{define "head"}}
 <title>EdgeXFoundry中国社区</title>
 <link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_img.png" style="width:62px;height:62px;" />
-
-<link rel="stylesheet" href="/public/css/footer.css">
 <style media="screen">
     * {
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
-    }
-    
-    a {
-        color: inherit;
-        text-decoration: none!important;
-        outline: 0;
-    }
-    
-    a:visited {
-        color: inherit;
-        text-decoration: none!important;
-        outline: 0;
-    }
-    
-    .user_profile img {
-        width: 51px;
-        height: 51px;
-        display: inline-block;
-        border-radius: 50%;
-        border: 1px solid rgba(148, 44, 73, 0.5);
-        outline: 0;
-    }
-    
-    .user_hide_info:hover {
-        display: inline-block;
     }
 </style>
 
@@ -72,98 +45,93 @@
         position: fixed;
         bottom: 0;
     }
-    
-    .x-hot-article li {
-        padding: 3px 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
 </style>
 <script type="text/javascript" src="/public/js/util.js"></script>
-{{end}} 
-{{define "body"}}
+{{end}} {{define "body"}}
 <div class="center" id="index_main">
     <div class="container">
         <div class="row">
             <div class="col-sm-12 col-md-12 col-lg-12">
-                <div class="jumbotron welcome" style="margin-bottom:20px;border-radius:0;">
-                    <h2>欢迎访问EdgeX Foundry中国社区</h2>
-
-                    <p style="font-weight:400;"><small>国内首个EdgeX Foundry物联网框架的交流社区。EdgeX Foundry是由Dell发起的物联网解决方案，目前EdgeX Foundry属于Linux基金会的首个物联网框架。</small></p>
+                <div class="card mb-3" style="margin-top: 10px;">
+                    <div class="row no-gutters">
+                        <div class="col-md-4">
+                            <img src="/public/img/bg_img.png" class="card-img" alt="...">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h2 class="card-title">欢迎访问EdgeX Foundry中国社区</h2>
+                                <p class="card-text">国内首个EdgeX Foundry物联网框架的交流社区。EdgeX Foundry是由Dell发起的物联网解决方案，目前EdgeX Foundry属于Linux基金会的首个物联网框架。</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-8 col-md-8 col-lg-8">
-                <div class="article_main">
-                    <span><i class="fa fa-yelp fa-fw" style="color:#942c49;"></i>&nbsp;最新动态</span>
-                </div>
-                <ul class="list-group">
-                    {{range $key,$article := .Articles}}
-                    <li href="" class="list-group-item article_body">
-                        <div class="media">
-                            <div class="media-left">
-                                <a href="/user/{{$article.UserName}}" target="_blank">
-                                    <img class="media-object img-circle" style="width:51px;height:51px;border: 1px solid rgba(148, 44, 73, 0.5);outline:0;" src="{{$article.AvatarUrl}}" alt="">
-                                </a>
-                            </div>
-                            <div class="media-body">
-                                <h4 class="media-heading "><a class="" href="/user/{{$article.UserName}}/article/{{$article.Id.Hex}}" target="_blank">{{$article.Title}}</a></h4>
-                                <div class="">
-                                    <span class="label label-success">{{$article.Type}}</span>&nbsp;&nbsp;<span class="badge">{{$article.Created | fdate}}</span>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa fa-yelp fa-fw" style="color:#942c49;"></i>&nbsp;最新动态
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            {{range $key,$article := .Articles}}
+                            <div class="list-group-item list-group-item-action">
+                                <div class="media">
+                                    <img src="{{$article.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="...">
+                                    <div class="media-body">
+                                        <h5 class="mt-0 mb-1"><a class="" href="/user/{{$article.UserName}}/article/{{$article.Id.Hex}}" target="_blank">{{$article.Title}}</a></h5>
+                                        <span class="badge badge-success">{{$article.Type}}</span>&nbsp;&nbsp;<span class="badge badge-secondary">{{$article.Created | fdate}}</span>
+                                    </div>
+
                                 </div>
                             </div>
+                            {{end}}
                         </div>
-                    </li>
-                    {{end}}
-                </ul>
-                <div class="article_footer">
 
+                        <div class="article_footer">
+
+                        </div>
+                    </div>
                 </div>
+
             </div>
             <div class="col-sm-4 col-md-4 col-lg-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> <i class="fa fa-volume-up fa-fw" style="color:#942c49;"></i>&nbsp;网站公告</div>
-                    <div class="panel-body">
-                        <div class="announcement">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa fa-volume-up fa-fw" style="color:#942c49;"></i>&nbsp;网站公告
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text"> EdgeXFoundry中国社区，是国内首个EdgeXFoundry物联网框架的交流社区。EdgeXFoundry是由Dell发起的物联网解决方案，目前EdgeXFoundry属于Linux基金会的首个物联网框架。我们致力于为技术人员提供分享和交流的平台，推动EdgeXFoundry在国内的普及和应用。 欢迎CTO、架构师、开发者等，在这里学习与交流使用EdgeXFoundry的实战经验。</p>
+                    </div>
+                </div>
 
-                            <p style="color:rgb(148,44,73);"> EdgeX Foundry中国社区，是国内首个EdgeX Foundry物联网框架的交流社区。EdgeX Foundry是由Dell发起的物联网解决方案，目前EdgeX Foundry属于Linux基金会的首个物联网框架。我们致力于为EdgeX Foundry技术人员提供分享和交流的平台，推动EdgeX Foundry在国内的普及和应用。 欢迎CTO、架构师、开发者等，在这里学习与交流使用EdgeX Foundry的实战经验。
-                            </p>
-
+                <div class="card">
+                    <div class="card-header">
+                        热门文章
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            {{range $key,$article := .HotArticles}}
+                            <a class="list-group-item list-group-item-action" href="/user/{{$article.UserName}}/article/{{$article.Id}}" target="_blank">{{$article.Title}}</a> {{end}}
                         </div>
                     </div>
                 </div>
 
-                <div class="panel panel-default x-hot-article">
-                    <div class="panel-heading">热门文章</div>
-                    <div class="panel-body">
-                        <ul class="list-unstyled">
-                            {{range $key,$article := .HotArticles}}
-                            <li>
-                                <a href="/user/{{$article.UserName}}/article/{{$article.Id}}" class="" target="_blank">{{$article.Title}}</a>
-                            </li>
-                            {{end}}
-                        </ul>
+                <div class="card">
+                    <div class="card-header">
+                        热门作者
+                    </div>
+                    <div class="card-body">
+                        {{range $key,$user := .HotAuthors}}
+                        <a href="/user/{{$user.Name}}" target="_blank">
+                            <img class="rounded-circle" style="width:45px;height:45px; " src="{{$user.AvatarUrl}}" alt="">
+                        </a>
+                        {{end}}
                     </div>
                 </div>
-                <div class="panel panel-default x-hot-author">
-                    <div class="panel-heading">热门作者</div>
-                    <div class="panel-body">
-                        <ul class="list-inline">
-                            {{range $key,$user := .HotAuthors}}
-                            <li>
-                                <a href="/user/{{$user.Name}}" target="_blank">
-                                    <img class="media-object img-circle" style="width:51px;height:51px;border: 1px solid rgba(148, 44, 73, 0.5);outline:0;" src="{{$user.AvatarUrl}}" alt="">
-                                </a>
-                            </li>
-                            {{end}}
-                        </ul>
-                    </div>
-                </div>
-                <div class="wechat_comm">
-                    <img src="" alt="">
-                </div>
+
             </div>
         </div>
     </div>

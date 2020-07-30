@@ -74,10 +74,10 @@ var edgexClubMainModule = {
                 success: function(data) {
                     if (data == 1) {
                         isVaild = true;
-                        $("div.header_login").hide();
-                        $("div.header_user a").prop("href", "/user/" + user["name"])
-                        $("div.header_user img").prop("src", user["avatarUrl"])
-                        $("div.header_user").show();
+                        $(".header_login").hide();
+                        $(".header_user a").prop("href", "/user/" + user["name"])
+                        $(".header_user img").prop("src", user["avatarUrl"])
+                        $(".header_user").show();
                     } else {
                         isVaild = false;
                     }
