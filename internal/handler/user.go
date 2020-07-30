@@ -47,7 +47,7 @@ func UserHome(w http.ResponseWriter, r *http.Request) {
 	userName := vars["userName"]
 	u := repo.UserRepos.FindOneByName(userName)
 
-	articleCount := repo.ArticleRepos.UserArticleCount(userName)
+	articleCount, _ := repo.ArticleRepositotyClient().UserArticleCount(userName)
 
 	t, _ := template.ParseFiles("static/users/home.html")
 	data := TodoPageUserData{

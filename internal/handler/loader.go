@@ -37,9 +37,9 @@ func LoadIndexPage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	articles := repo.ArticleRepos.FindAllArticles()
-	hotAuthors := repo.ArticleRepos.HotAuthor()
-	hotArticles := repo.ArticleRepos.HotArticle()
+	articles, _ := repo.ArticleRepositotyClient().FetchAll()
+	hotAuthors, _ := repo.ArticleRepositotyClient().HotAuthor()
+	hotArticles, _ := repo.ArticleRepositotyClient().HotArticle()
 	data := struct {
 		CredUser    *model.Credentials
 		Articles    []model.Article
@@ -61,14 +61,14 @@ func LoadArticlePage(w http.ResponseWriter, r *http.Request) {
 	userName := vars["userName"]
 	articleId := vars["articleId"]
 	fmt.Printf("userName: %s\n", vars["userName"])
-	article := repo.ArticleRepos.FindOne(userName, articleId)
+	article, _ := repo.ArticleRepositotyClient().FindOne(userName, articleId)
 	user := repo.UserRepos.FindOneByName(userName)
-	articleCount := repo.ArticleRepos.UserArticleCount(userName)
-	comments := repo.ArticleRepos.FindAllCommentByArticleId(articleId)
-	hotArticles := repo.ArticleRepos.HotArticle()
+	articleCount, _ := repo.ArticleRepositotyClient().UserArticleCount(userName)
+	comments, _ := repo.CommentRepositotyClient().FindAllCommentByArticleId(articleId)
+	hotArticles, _ := repo.ArticleRepositotyClient().HotArticle()
 	replysMap := make(map[string][]model.Reply)
 	for _, c := range comments {
-		replys := repo.ArticleRepos.FindAllReplyByCommentId(c.Id.Hex())
+		replys, _ := repo.ReplyRepositotyClient().FindAllReplyByCommentId(c.Id.Hex())
 		replysMap[c.Id.Hex()] = replys
 	}
 	data := struct {
@@ -105,7 +105,7 @@ func LoadArticleEditPage(w http.ResponseWriter, r *http.Request) {
 	articleId := vars["articleId"]
 	userName := vars["userName"]
 	var a model.Article
-	a = repo.ArticleRepos.FindOne(userName, articleId)
+	a, _ = repo.ArticleRepositotyClient().FindOne(userName, articleId)
 	data := struct {
 		ArticleId    string
 		MD           string
@@ -130,7 +130,7 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userName := vars["userName"]
 	u := repo.UserRepos.FindOneByName(userName)
-	articleCount := repo.ArticleRepos.UserArticleCount(userName)
+	articleCount, _ := repo.ArticleRepositotyClient().UserArticleCount(userName)
 
 	data := struct {
 		UserId       string

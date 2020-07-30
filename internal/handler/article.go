@@ -17,6 +17,12 @@ import (
 	mux "github.com/gorilla/mux"
 )
 
+const (
+	ContentType     string = "Content-Type"
+	ContentTypeText string = "text/plain;charset=utf-8"
+	ContentTypeJSON string = "application/json;charset=utf-8"
+)
+
 type TodoPageData struct {
 	UserName        string
 	AvatarUrl       string
@@ -34,11 +40,19 @@ func FindAllReplyByCommentId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	commentId := vars["commentId"]
 
-	replys := repo.ArticleRepos.FindAllReplyByCommentId(commentId)
-	result, _ := json.Marshal(&replys)
+	replys, err := repo.ReplyRepositotyClient().FindAllReplyByCommentId(commentId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var result []byte
+	if result, err = json.Marshal(&replys); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	w.Header().Set("Content-Type", "application/json;charset=utf-8")
-	w.Write([]byte(result))
+	w.Header().Set(ContentType, ContentTypeJSON)
+	w.Write(result)
 }
 
 func FindAllCommentByArticleId(w http.ResponseWriter, r *http.Request) {
@@ -46,11 +60,19 @@ func FindAllCommentByArticleId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	articleId := vars["articleId"]
 
-	comments := repo.ArticleRepos.FindAllCommentByArticleId(articleId)
-	result, _ := json.Marshal(&comments)
+	comments, err := repo.CommentRepositotyClient().FindAllCommentByArticleId(articleId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var result []byte
+	if result, err = json.Marshal(&comments); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	w.Header().Set("Content-Type", "application/json;charset=utf-8")
-	w.Write([]byte(result))
+	w.Header().Set(ContentType, ContentTypeJSON)
+	w.Write(result)
 }
 
 func hanleContent(content string) (bool, string) {
@@ -69,19 +91,21 @@ func hanleContent(content string) (bool, string) {
 }
 
 func message(toUserName string, fromUserName string, articleId string, articleUserName string, t string) {
-	var msg model.Message
-	msg.ArticleUserName = articleUserName
-	msg.ArticleId = articleId
-	msg.ToUserName = toUserName
-	msg.FromUserName = fromUserName
-	msg.IsRead = false
-	if t == "comment" {
-		msg.Content = fromUserName + "评论了您的文章"
-		repo.ArticleRepos.SaveMessage(msg)
+	msg := model.Message{
+		ArticleUserName: articleUserName,
+		ArticleId:       articleId,
+		ToUserName:      toUserName,
+		FromUserName:    fromUserName,
+		IsRead:          false,
 	}
-	if t == "reply" {
-		msg.Content = fromUserName + "回复了您的评论"
-		repo.ArticleRepos.SaveMessage(msg)
+
+	if t == "comment" {
+		msg.Content = fmt.Sprintf("%s评论了您的文章", fromUserName)
+	} else if t == "reply" {
+		msg.Content = fmt.Sprintf("%s回复了您的评论", fromUserName)
+	}
+	if _, err := repo.MessageRepositotyClient().Create(msg); err != nil {
+		log.Println(err.Error())
 	}
 }
 
@@ -90,9 +114,12 @@ func UpdateMessage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	msgId := vars["id"]
 
-	repo.ArticleRepos.UpdateMessage(msgId)
+	if err := repo.MessageRepositotyClient().Update(msgId); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	w.Header().Set("Content-Type", "text/plain;charset=utf-8")
+	w.Header().Set(ContentType, ContentTypeText)
 	w.Write([]byte("ok"))
 }
 
@@ -100,9 +127,17 @@ func FindAllMessage(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	vars := mux.Vars(r)
 	userName := vars["userName"]
-	msgs := repo.ArticleRepos.FindAllMessage(userName)
-	result, _ := json.Marshal(&msgs)
-	w.Header().Set("Content-Type", "application/json;charset=utf-8")
+	msgs, err := repo.MessageRepositotyClient().FetchAllByUserName(userName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	result, err := json.Marshal(&msgs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set(ContentType, ContentTypeJSON)
 	w.Write(result)
 }
 
@@ -110,9 +145,12 @@ func FindAllMessageCount(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	vars := mux.Vars(r)
 	userName := vars["userName"]
-	msgsCount := repo.ArticleRepos.FindAllMessageCount(userName)
-
-	w.Header().Set("Content-Type", "text/plain;charset=utf-8")
+	msgsCount, err := repo.MessageRepositotyClient().MsgSumByUserName(userName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set(ContentType, ContentTypeText)
 	w.Write([]byte(strconv.Itoa(msgsCount)))
 }
 
@@ -140,12 +178,16 @@ func PostReply(w http.ResponseWriter, r *http.Request) {
 	reply.FromUserName = fromUserName
 	reply.ToUserName = toUserName
 
-	reply = repo.ArticleRepos.PostReply(reply)
+	reply, err := repo.ReplyRepositotyClient().Create(reply)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	log.Println("用户：" + fromUserName + " 回复了 " + toUserName)
 
 	go func() {
-		articleId := repo.ArticleRepos.FindArticleIdByCommentId(commentId)
-		articleUserName := repo.ArticleRepos.FindArticleUserByArticleId(articleId)
+		articleId, _ := repo.CommentRepositotyClient().FindArticleIdByCommentId(commentId)
+		articleUserName := repo.ArticleRepositotyClient().FindArticleUserByArticleId(articleId)
 		message(toUserName, fromUserName, articleId, articleUserName, "reply")
 	}()
 
@@ -178,24 +220,32 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 	c.ArticleId = articleId
 	c.UserAvatarUrl = creds.AvatarUrl
 
-	c = repo.ArticleRepos.PostComment(c)
+	c, err := repo.CommentRepositotyClient().Create(c)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	log.Println("用户：" + creds.Name + " 发起了评论")
 	go func() {
-		articleUserName := repo.ArticleRepos.FindArticleUserByArticleId(articleId)
+		articleUserName := repo.ArticleRepositotyClient().FindArticleUserByArticleId(articleId)
 		message(articleUserName, creds.Name, articleId, articleUserName, "comment")
 	}()
 
 	result, _ := json.Marshal(&c)
-	w.Header().Set("Content-Type", "application/json;charset=utf-8")
+	w.Header().Set(ContentType, ContentTypeJSON)
 	w.Write(result)
 }
 
 func FindNewArticles(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	articles := repo.ArticleRepos.FindNewArticles()
+	articles, err := repo.ArticleRepositotyClient().FetchAll()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	result, _ := json.Marshal(&articles)
-	w.Header().Set("Content-Type", "application/json;charset=utf-8")
-	w.Write([]byte(result))
+	w.Header().Set(ContentType, ContentTypeJSON)
+	w.Write(result)
 }
 
 func FindAllArticlesByUser(w http.ResponseWriter, r *http.Request) {
@@ -208,29 +258,32 @@ func FindAllArticlesByUser(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal([]byte(userStr), &creds)
 
 	var articles []model.Article
-	if creds.Id == userId {
-		log.Println("====================")
-		articles = repo.ArticleRepos.FindAllArticlesByUser(userId, false)
-	} else {
-		articles = repo.ArticleRepos.FindAllArticlesByUser(userId, true)
+	var err error
+	var filter bool
+	if creds.Id != userId {
+		filter = true
+	}
+	if articles, err = repo.ArticleRepositotyClient().FindAllArticlesByUser(userId, filter); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	result, _ := json.Marshal(&articles)
 
-	w.Header().Set("Content-Type", "application/json;charset=utf-8")
-	w.Write([]byte(result))
+	w.Header().Set(ContentType, ContentTypeJSON)
+	w.Write(result)
 }
 
 func FindOneArticle(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	vars := mux.Vars(r)
-
 	userName := vars["userName"]
 	articleId := vars["articleId"]
-	fmt.Printf("userName: %s\n", vars["userName"])
-	article := repo.ArticleRepos.FindOne(userName, articleId)
+
+	article, _ := repo.ArticleRepositotyClient().FindOne(userName, articleId)
 	user := repo.UserRepos.FindOneByName(userName)
-	articleCount := repo.ArticleRepos.UserArticleCount(userName)
+	articleCount, _ := repo.ArticleRepositotyClient().UserArticleCount(userName)
+
 	t, _ := template.ParseFiles("static/articles/article_tpl.html")
 	data := TodoPageData{
 		UserName:        userName,
@@ -265,11 +318,15 @@ func SaveNewArticle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "can't read body", http.StatusBadRequest)
 		return
 	}
-	result := repo.ArticleRepos.SaveOne(a)
+	id, err := repo.ArticleRepositotyClient().Create(a)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	log.Println("用户：" + creds.Name + " 保存了文章 ")
 
-	w.Header().Set("Content-Type", "text/plain;charset=utf-8")
-	w.Write([]byte(result))
+	w.Header().Set(ContentType, ContentTypeText)
+	w.Write([]byte(id))
 }
 
 func UpdateArticle(w http.ResponseWriter, r *http.Request) {
@@ -277,21 +334,24 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	var a model.Article
 	vars := mux.Vars(r)
 	articleId := vars["articleId"]
-	err := json.NewDecoder(r.Body).Decode(&a)
 
 	userStr := r.Header.Get("inner-user")
 	var creds model.Credentials
-	json.Unmarshal([]byte(userStr), &creds)
+	if err := json.Unmarshal([]byte(userStr), &creds); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
 		log.Printf("%s：用户提交的文章无法解析", creds.Name)
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	a.UserId = creds.Id
 	a.AvatarUrl = creds.AvatarUrl
 	a.Approved = false
-	isExist := repo.ArticleRepos.Exists(articleId, creds.Id)
+	isExist, _ := repo.ArticleRepositotyClient().ExistsByUserId(articleId, creds.Id)
 
 	if !isExist {
 		log.Printf("非法用户尝试修改不属于自己的文章: %s", creds.Name)
@@ -299,7 +359,10 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repo.ArticleRepos.UpdateOne(articleId, a)
+	if err := repo.ArticleRepositotyClient().UpdateOne(articleId, a); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	log.Println("用户：" + creds.Name + " 更新了文章 " + articleId)
 }
 
@@ -307,64 +370,56 @@ func LoadEditArticleTemplate(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	vars := mux.Vars(r)
-	articleId := vars["articleId"]
+	articleID := vars["articleId"]
 	userName := vars["userName"]
 
 	var a model.Article
 	var data TodoPageData
-	if articleId == "new" { //新文章
-		articleId = ""
+	if articleID == "new" { //新文章
+		articleID = ""
 		data = TodoPageData{
-			ArticleId: articleId,
+			ArticleId: articleID,
 		}
 	} else { //编辑已有文章
-		a = repo.ArticleRepos.FindOne(userName, articleId)
+		a, _ = repo.ArticleRepositotyClient().FindOne(userName, articleID)
 
 		data = TodoPageData{
-			ArticleId:    articleId,
+			ArticleId:    articleID,
 			MD:           a.Content,
 			ArticleTitle: a.Title,
 			Type:         a.Type,
 		}
 	}
 
-	t, _ := template.ParseFiles("static/articles/edit_article.html")
+	t, err := template.ParseFiles("static/articles/edit_article.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	t.Execute(w, data)
 }
 
 func HotAuthor(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	hotAuthor := repo.ArticleRepos.HotAuthor()
-	result, _ := json.Marshal(&hotAuthor)
-	w.Header().Set("Content-Type", "application/json;charset=utf-8")
+	hotAuthor, _ := repo.ArticleRepositotyClient().HotAuthor()
+	result, err := json.Marshal(&hotAuthor)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set(ContentType, ContentTypeJSON)
 	w.Write(result)
 }
 
 func HotArticle(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	hotArticle := repo.ArticleRepos.HotArticle()
-	result, _ := json.Marshal(&hotArticle)
-	w.Header().Set("Content-Type", "application/json;charset=utf-8")
+	hotArticle, _ := repo.ArticleRepositotyClient().HotArticle()
+	result, err := json.Marshal(&hotArticle)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set(ContentType, ContentTypeJSON)
 	w.Write(result)
-}
-
-func saveToFile(body string, userName string, articleID string) {
-	// userName = "admin"
-	// articleID = "011"
-	// // body, err := ioutil.ReadAll(r.Body)
-	// err = os.MkdirAll("static/articles/users/"+userName, os.ModePerm) //生成多级目录
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	//
-	// f, err := os.Create("static/articles/users/" + userName + "/" + articleID)
-	// if err != nil {
-	// 	log.Printf("Error create file: %v", err)
-	// }
-	// _, err = f.Write(body)
-	// if err != nil {
-	// 	log.Printf("Error write file: %v", err)
-	// }
-	// // err = ioutil.WriteFile("static/dat1.html", body, 0644)
 }

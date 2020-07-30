@@ -11,13 +11,21 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
+const (
+	EdgeXClubDB  = "edgex-club"
+	ArticleTable = "article"
+	MsgTable     = "message"
+	CommentTable = "comment"
+	ReplyTable   = "reply"
+)
+
 type DataStore struct {
 	S *mgo.Session
 }
 
-var DS DataStore
+var DS *DataStore = &DataStore{}
 
-func (ds DataStore) DataStore() *DataStore {
+func (ds *DataStore) DataStore() *DataStore {
 	return &DataStore{ds.S.Copy()}
 }
 
