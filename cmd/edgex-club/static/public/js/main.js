@@ -64,6 +64,7 @@ var edgexClubMainModule = {
     checkLogin: function() {
         var token = window.localStorage.getItem("edgex-club-token");
         var user = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
+        console.dir(user)
         var isVaild = false;
         if (token) {
             $.ajax({
@@ -74,6 +75,7 @@ var edgexClubMainModule = {
                     if (data == 1) {
                         isVaild = true;
                         $("div.header_login").hide();
+                        $("div.header_user a").prop("href", "/user/" + user["name"])
                         $("div.header_user img").prop("src", user["avatarUrl"])
                         $("div.header_user").show();
                     } else {

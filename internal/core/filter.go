@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func GeneralFilter(h http.Handler) http.Handler {
+func GeneralFilter(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 
@@ -54,6 +54,6 @@ func GeneralFilter(h http.Handler) http.Handler {
 			r.Header.Set("inner-user", string(credsByte))
 		}
 
-		h.ServeHTTP(w, r)
+		next.ServeHTTP(w, r)
 	})
 }

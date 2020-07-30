@@ -7,6 +7,7 @@ import (
 	"edgex-club/internal/core"
 	"edgex-club/internal/model"
 	repo "edgex-club/internal/repository"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -27,14 +28,25 @@ func renderTemplate(w http.ResponseWriter, name string, template string, data in
 
 func LoadIndexPage(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+	userInfo := r.Header.Get("inner-user")
+	var credUser *model.Credentials
+	if userInfo != "" {
+		if err := json.Unmarshal([]byte(userInfo), credUser); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
+
 	articles := repo.ArticleRepos.FindAllArticles()
 	hotAuthors := repo.ArticleRepos.HotAuthor()
 	hotArticles := repo.ArticleRepos.HotArticle()
 	data := struct {
+		CredUser    *model.Credentials
 		Articles    []model.Article
 		HotAuthors  []model.User
 		HotArticles []model.Article
 	}{
+		CredUser:    credUser,
 		Articles:    articles,
 		HotAuthors:  hotAuthors,
 		HotArticles: hotArticles,

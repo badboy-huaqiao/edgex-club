@@ -128,20 +128,22 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 	}
 	u = repository.UserRepos.FindOneByName(u.Name)
 
-	var creds model.Credentials
+	creds := model.Credentials{
+		Name:      u.Name,
+		AvatarUrl: u.AvatarUrl,
+		Id:        u.Id.Hex(),
+	}
 
-	creds.Name = u.Name
-	creds.AvatarUrl = u.AvatarUrl
-	creds.Id = u.Id.Hex()
-	credsByte, err := json.Marshal(creds)
+	credsByte, _ := json.Marshal(creds)
 
 	token, err := authorization.NewToken(creds)
 	if err != nil {
 		log.Println("生成token失败！")
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	log.Printf("User login: %v", u)
+	log.Printf("User login: %v\n", u)
 
 	t, _ := template.ParseFiles("static/redirect.html")
 	data := ReturnLoginUserToPageData{
@@ -155,7 +157,7 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 		Value: token,
 		//Expires: expirationTime,
 	})
-
+	// http.Redirect(w, r, userPrePage, http.StatusTemporaryRedirect)
 	t.Execute(w, data)
 }
 

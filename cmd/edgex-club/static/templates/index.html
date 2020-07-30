@@ -81,7 +81,8 @@
     }
 </style>
 <script type="text/javascript" src="/public/js/util.js"></script>
-{{end}} {{define "body"}}
+{{end}} 
+{{define "body"}}
 <div class="center" id="index_main">
     <div class="container">
         <div class="row">
@@ -179,9 +180,6 @@
 </footer>
 <!-- myfooter end -->
 
-<script type="text/javascript" src="/public/vendors/jquery/jquery.min.js"></script>
-<script type="text/javascript" src="/public/js/main.js"></script>
-
 <script type="text/javascript">
     //footer位置设置
     function footerPosition() {
@@ -202,14 +200,4 @@
         $(window).resize(footerPosition);
     });
 </script>
-<script>
-    var _hmt = _hmt || [];
-    (function() {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?33ac76c70e637460d49b396f378efab8";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-    })();
-</script>
-
 {{end}}
