@@ -5,13 +5,9 @@
 
 {{define "head"}}
 <title>EdgeXFoundry中国社区</title>
-<link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_img.png" style="width:62px;height:62px;" />
+<link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_x.png" style="width:62px;height:62px;" />
 <style media="screen">
-    * {
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;
-    }
+
 </style>
 
 <style media="screen">
@@ -55,7 +51,7 @@
                 <div class="card mb-3" style="margin-top: 10px;">
                     <div class="row no-gutters">
                         <div class="col-md-4">
-                            <img src="/public/img/bg_img.png" class="card-img" alt="...">
+                            <img src="/public/img/bg_img.png" class="card-img" alt="">
                         </div>
                         <div class="col-md-8">
                             <div class="card-body">
@@ -69,30 +65,22 @@
         </div>
         <div class="row">
             <div class="col-sm-8 col-md-8 col-lg-8">
-
                 <div class="card">
                     <div class="card-header">
                         <i class="fa fa-yelp fa-fw" style="color:#942c49;"></i>&nbsp;最新动态
                     </div>
-                    <div class="card-body">
-                        <div class="list-group list-group-flush">
-                            {{range $key,$article := .Articles}}
-                            <div class="list-group-item list-group-item-action">
-                                <div class="media">
-                                    <img src="{{$article.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="...">
-                                    <div class="media-body">
-                                        <h5 class="mt-0 mb-1"><a class="" href="/user/{{$article.UserName}}/article/{{$article.Id.Hex}}" target="_blank">{{$article.Title}}</a></h5>
-                                        <span class="badge badge-success">{{$article.Type}}</span>&nbsp;&nbsp;<span class="badge badge-secondary">{{$article.Created | fdate}}</span>
-                                    </div>
-
+                    <div class="list-group list-group-flush">
+                        {{range $key,$article := .Articles}}
+                        <div class="list-group-item list-group-item-action">
+                            <div class="media">
+                                <a href="/user/{{$article.UserName}}"><img src="{{$article.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="..."></a>
+                                <div class="media-body">
+                                    <h5 class="mt-0 mb-1"><a class="text-dark" href="/user/{{$article.UserName}}/article/{{$article.Id.Hex}}" target="_blank">{{$article.Title}}</a></h5>
+                                    <span class="badge badge-success">{{$article.Type}}</span>&nbsp;&nbsp;<span class="badge badge-secondary">{{$article.Created | fdate}}</span>
                                 </div>
                             </div>
-                            {{end}}
                         </div>
-
-                        <div class="article_footer">
-
-                        </div>
+                        {{end}}
                     </div>
                 </div>
 
@@ -111,11 +99,9 @@
                     <div class="card-header">
                         热门文章
                     </div>
-                    <div class="card-body">
-                        <div class="list-group list-group-flush">
-                            {{range $key,$article := .HotArticles}}
-                            <a class="list-group-item list-group-item-action" href="/user/{{$article.UserName}}/article/{{$article.Id}}" target="_blank">{{$article.Title}}</a> {{end}}
-                        </div>
+                    <div class="list-group list-group-flush">
+                        {{range $key,$article := .HotArticles}}
+                        <a class="list-group-item list-group-item-action" href="/user/{{$article.UserName}}/article/{{$article.Id}}" target="_blank">{{$article.Title}}</a> {{end}}
                     </div>
                 </div>
 
