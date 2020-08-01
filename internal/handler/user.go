@@ -19,6 +19,7 @@ type TodoPageUserData struct {
 	UserName     string
 	AvatarUrl    string
 	ArticleCount int
+	Articles     []model.Article
 }
 
 //Register methond
@@ -42,9 +43,25 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 func UserHome(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-
 	vars := mux.Vars(r)
 	userName := vars["userName"]
+
+	var creds model.Credentials
+	userStr := r.Header.Get("inner-user")
+	json.Unmarshal([]byte(userStr), &creds)
+
+	var articles []model.Article
+	var err error
+	var filter bool
+	if creds.Name != userName {
+		filter = true
+	}
+
+	if articles, err = repo.ArticleRepositotyClient().FindAllArticlesByUser(creds.Id, filter); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	u := repo.UserRepos.FindOneByName(userName)
 
 	articleCount, _ := repo.ArticleRepositotyClient().UserArticleCount(userName)
@@ -55,6 +72,7 @@ func UserHome(w http.ResponseWriter, r *http.Request) {
 		UserName:     userName,
 		AvatarUrl:    u.AvatarUrl,
 		ArticleCount: articleCount,
+		Articles:     articles,
 	}
 	t.Execute(w, data)
 }

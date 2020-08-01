@@ -11,323 +11,181 @@
 <link href="/public/vendors/markdown/editor/css/editormd.preview.min.css" rel="stylesheet">
 
 <style media="screen">
-    .x-title {
-        /*background-color: #f6f8fa!important;*/
-        /*border: 1px solid #e1e4e8;*/
-        font-size: medium;
-        /*font-weight: bold;*/
-        /*color: white !important;*/
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-    }
-    
-    .user_profile {
-        margin-top: 10px;
-    }
-    
-    .user_profile a {
-        color: inherit;
-        text-decoration: none;
-    }
-    
-    .user_profile img {
-        width: 51px;
-        height: 51px;
-        display: inline-block;
-        border-radius: 50%;
-        border: 1px solid rgba(148, 44, 73, 0.5);
-        outline: 0;
-    }
-    
-    .user_profile span {
-        font-size: medium;
-        font-weight: bold;
-        margin-left: 5px;
-    }
-    
-    .user_profile_data {
-        height: 40px;
-        margin-bottom: 5px;
-    }
-    
-    .user_profile_data {
-        margin-top: 15px;
-    }
-    
-    .user_profile_data dl {
-        display: inline-block;
-        text-align: center;
-        border-top: 5px;
-    }
-    
-    a {
-        color: inherit;
-        text-decoration: none!important;
-    }
-    
-    div.article_operation a:hover {
-        color: black!important;
-        cursor: default!important;
-    }
-    
-    span.article_operation_edit {
-        cursor: default!important;
-    }
-    
-    .x-hot-article li {
-        padding: 3px 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
+
 </style>
 
-{{end}} 
+{{end}} {{define "body"}}
 
-{{define "body"}}
-
-<div class="container" style="margin-top:75px;">
+<div class="container" style="margin-top:10px;">
     <div class="row">
         <div class="col-sm-3 col-md-3 col-lg-3">
-            <div class="panel panel-default">
-                <div class="panel-heading x-title">作者信息</div>
-                <div class=" panel-body">
-                    <div class="user_profile">
-                        <a href="/user/{{.UserName}}"><img src="{{.AvatarUrl}}" alt=""></a>
-                        <a href="/user/{{.UserName}}">
-                            <span>{{.UserName}}</span>
-                        </a>
+            <div class="card">
+                <div class="card-header">作者信息</div>
+                <div class="card-body">
+                    <div class="media">
+                        <img src="{{.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="">
+                        <div class="media-body">
+                            <h5 class="card-title">{{.UserName}}</h5>
+                            <p class="card-text">文章&nbsp;&nbsp;{{.ArticleCount}}</p>
+                        </div>
                     </div>
-                    <div style="border-top:1px solid gray;margin-top:10px;"></div>
-                    <div class="user_profile_data">
-                        <dl style="margin-left:10px;">
-                            <dt>文章</dt>
-                            <dd>{{.ArticleCount}}</dd>
-                        </dl>
-                        <dl style="margin-left:10px;">
-                            <dt>评论</dt>
-                            <dd>0</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-            <div class="panel panel-default x-hot-article">
-                <div class="panel-heading">热门文章</div>
-                <div class="panel-body">
-
                 </div>
             </div>
         </div>
         <div class="col-sm-9 col-md-9 col-lg-9">
-            <div id="message" class="panel panel-default" style="margin-bottom:5px;">
-                <div class="panel-heading x-title">消息</div>
-                <div class="panel-body" style="padding:0;">
+            {{ if .Self }}
+            <div class="card">
+                <div class="card-header">
+                    消息
+                </div>
+                <div class="list-group list-group-flush">
+                    {{range $key,$msg := .Messages}}
+                    <a href="/user/{{$msg.ArticleUserName}}/article/{{$msg.ArticleId}}" class="list-group-item list-group-item-action">
+                            {{$msg.Content}}
 
+                            <span class="pull-right">
+                                {{if $msg.IsRead }}
+                                <span class="badge badge-pill badge-secondary">已读</span> 
+                                {{else}} 
+                                <span class="badge badge-pill badge-danger">未读</span>
+                                {{end}}
+                                <span class="badge badge-pill badge-success">{{$msg.Created | fdate}}</span>
+                            </span>
+                            
+                    </a> {{end}}
                 </div>
             </div>
-            <!-- <div class="alert alert-danger" role="alert" style="margin-top:0;text-align:center;height:50px;">
-           <span style="margin-right:60px;">点击加载更多</span>
-         </div> -->
-
-            <div class="panel panel-default" style="margin-bottom:0;">
-                <div class="panel-heading x-title">作者文章</div>
-
-                <div class="panel-body x-article-body" style="padding:0;border-radius:0;"></div>
+            {{ end }}
+            <div class="card" style="margin-top: 10px;">
+                <div class="card-header">文章</div>
+                <div class="list-group list-group-flush">
+                    {{range $key,$article := .Articles}}
+                    <div class="list-group-item list-group-item-action">
+                        <div class="media">
+                            <a href="/user/{{$article.UserName}}"><img src="{{$article.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="..."></a>
+                            <div class="media-body">
+                                <h5 class="mt-0 mb-1"><a class="text-dark" href="/user/{{$article.UserName}}/article/{{$article.Id.Hex}}" target="_blank">{{$article.Title}}</a></h5>
+                                <span class="badge badge-success">{{$article.Type}}</span>&nbsp;&nbsp;<span class="badge badge-secondary">{{$article.Created | fdate}}</span>
+                                {{ if $.Self }}
+                                <span class="pull-right">
+                                    {{if $article.Approved }}
+                                    <span class="badge badge-pill badge-success">已审核</span> 
+                                    {{else}}
+                                    <span class="badge badge-pill badge-danger">审核中</span> 
+                                    {{end}}
+                                    <span class="badge badge-pill badge-info"><a class="text-light" href="/article/edit/{{$article.UserName}}/{{$article.Id | bsonIdStr}}" target="_blank">编辑</a></span>
+                                </span>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
             </div>
-            <!-- <div class="alert alert-danger" role="alert" style="margin-top:0;text-align:center;">
-            <span style="margin-right:60px;">点击加载更多</span>
-          </div> -->
         </div>
     </div>
-</div>
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">提示</h4>
-            </div>
-            <div class="modal-body">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                <button type="button" onclick="deleteArticle()" class="btn btn-primary">确定</button>
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">提示</h4>
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" onclick="deleteArticle()" class="btn btn-primary">确定</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script type="text/javascript">
-    var userId = "{{.UserId}}"
-    var userName = "{{.UserName}}"
+    <script type="text/javascript">
+        var userId = "{{.UserId}}"
+        var userName = "{{.UserName}}"
 
-    function loadHotArticle() {
-        $.ajax({
-            url: '/api/v1/hotArticle',
-            type: 'GET',
-            success: function(data) {
-                $("div.x-hot-article .panel-body").empty();
-                var rowData = '<ul class="list-unstyled">';
-                $.each(data, function(i, e) {
-                    var path = "/user/" + e.userName + "/article/" + e.id;
-                    rowData += '<li><a href="' + path + '" class="" target="_blank"><u>' + e.title + '</u></a></li>';
-                });
-                rowData += '</ul>';
-                $("div.x-hot-article .panel-body").append(rowData)
-            },
-            error: function() {
+        function loadHotArticle() {
+            $.ajax({
+                url: '/api/v1/hotArticle',
+                type: 'GET',
+                success: function(data) {
+                    $("div.x-hot-article .panel-body").empty();
+                    var rowData = '<ul class="list-unstyled">';
+                    $.each(data, function(i, e) {
+                        var path = "/user/" + e.userName + "/article/" + e.id;
+                        rowData += '<li><a href="' + path + '" class="" target="_blank"><u>' + e.title + '</u></a></li>';
+                    });
+                    rowData += '</ul>';
+                    $("div.x-hot-article .panel-body").append(rowData)
+                },
+                error: function() {
 
-            }
-        });
-    }
-
-    function updateMessage(event) {
-        var msgId = $(event.currentTarget).attr("msgId");
-        var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
-        $.ajax({
-            url: "/api/v1/auth/message/" + msgId,
-            type: "PUT",
-            success: function() {
-                $.ajax({
-                    url: "/api/v1/auth/message/" + userInfo.name + "/count",
-                    type: "GET",
-                    success: function(data) {
-                        if (data == 0) {
-                            $("div.header_user span.badge").hide();
-                            return;
-                        } else if (data > 100) {
-                            $("div.header_user span.badge").text(data + "+");
-                        } else {
-                            $("div.header_user span.badge").text(data);
-                        }
-                        $("div.header_user span.badge").show();
-                    }
-                });
-            }
-        });
-    }
-
-    function loadUserMessage() {
-        if (!edgexClubMainModule.loginIsVaild) {
-            $("#message").hide();
+                }
+            });
         }
-        if (edgexClubMainModule.loginIsVaild) {
+
+        function updateMessage(event) {
+            var msgId = $(event.currentTarget).attr("msgId");
             var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
-            if (userInfo.id != userId) {
+            $.ajax({
+                url: "/api/v1/auth/message/" + msgId,
+                type: "PUT",
+                success: function() {
+                    $.ajax({
+                        url: "/api/v1/auth/message/" + userInfo.name + "/count",
+                        type: "GET",
+                        success: function(data) {
+                            if (data == 0) {
+                                $("div.header_user span.badge").hide();
+                                return;
+                            } else if (data > 100) {
+                                $("div.header_user span.badge").text(data + "+");
+                            } else {
+                                $("div.header_user span.badge").text(data);
+                            }
+                            $("div.header_user span.badge").show();
+                        }
+                    });
+                }
+            });
+        }
+
+        function loadUserMessage() {
+            if (!edgexClubMainModule.loginIsVaild) {
                 $("#message").hide();
-            } else {
-                $.ajax({
-                    url: "/api/v1/auth/message/" + userInfo.name,
-                    type: "GET",
-                    success: function(data) {
+            }
+            if (edgexClubMainModule.loginIsVaild) {
+                var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
+                if (userInfo.id != userId) {
+                    $("#message").hide();
+                } else {
+                    $.ajax({
+                        url: "/api/v1/auth/message/" + userInfo.name,
+                        type: "GET",
+                        success: function(data) {
 
-                        if (data.length == 0) {
-                            $("#message").hide();
-                        }
-                        for (var i = 0; i < data.length; i++) {
-                            var d = data[i];
-                            var isRead = "";
-                            var statusColor = "";
-                            if (d.isRead) {
-                                isRead = "已读";
-                            } else {
-                                isRead = "未读";
-                                statusColor = "#f0ad4e;"
+                            if (data.length == 0) {
+                                $("#message").hide();
                             }
-                            var a = '<a msgId="' + d.id + '" target="_blank" onclick="updateMessage(event)" href="/user/' + d.articleUserName + '/article/' + d.articleId + '" class="list-group-item" ><span style="clear:both;display:inline-block;width:50%;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;">' + d.content + '</span> <span class="badge">' + edgexFmtDate(d.created) + '</span><span class="badge" style="color:' + statusColor + '">' + isRead + '</span></a>'
-                            $("#message div.panel-body").append(a)
+                            for (var i = 0; i < data.length; i++) {
+                                var d = data[i];
+                                var isRead = "";
+                                var statusColor = "";
+                                if (d.isRead) {
+                                    isRead = "已读";
+                                } else {
+                                    isRead = "未读";
+                                    statusColor = "#f0ad4e;"
+                                }
+                                var a = '<a msgId="' + d.id + '" target="_blank" onclick="updateMessage(event)" href="/user/' + d.articleUserName + '/article/' + d.articleId + '" class="list-group-item" ><span style="clear:both;display:inline-block;width:50%;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;">' + d.content + '</span> <span class="badge">' + edgexFmtDate(d.created) + '</span><span class="badge" style="color:' + statusColor + '">' + isRead + '</span></a>'
+                                $("#message div.panel-body").append(a)
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
-    }
+    </script>
 
-    function loadUserAllArticles() {
-        var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
-        var url = "";
-        if (userInfo && userId == userInfo.id) { //所有文章
-            url = "/api/v1/auth/article/" + userId + "/all"
-        } else { //所有已经发布审核的文章
-            url = "/api/v1/article/" + userId + "/public"
-        }
-        $.ajax({
-            url: url,
-            type: "GET",
-            success: function(data) {
-
-                var articles = data;
-
-                for (var i = 0; i < articles.length; i++) {
-                    var path = "/user/" + articles[i].userName + "/article/" + articles[i].id;
-
-                    var row = '<li href="" class="list-group-item article_body"><div class="media">';
-
-                    row += '<div class="media-left">';
-                    row += '<a href="" target="_blank">';
-                    row += '<img class="media-object img-circle" src="{{.AvatarUrl}}" alt="" style="width:51px;height:51px;border: 1px solid rgba(148, 44, 73, 0.5);outline:0;">';
-                    row += '</a>';
-                    row += '</div>';
-
-                    row += '<div class="media-body">';
-
-                    row += '<h4 class="media-heading "><a class="" href=\'' + path + '\' target="_blank">' + articles[i].title + '</a></h4>';
-
-                    row += '<div class="" >';
-                    row += '<span class="label label-success">' + articles[i].type + '</span>&nbsp;&nbsp;<span class="badge">' + edgexFmtDate(articles[i].created) + '</span>';
-                    if (edgexClubMainModule.loginIsVaild) {
-                        if (userInfo.id == userId) {
-                            if (articles[i].approved) {
-                                row += '<span articlesId="' + articles[i].id + '" class="label label-default pull-right article_operation_edit">编辑</span><span class="label label-success" style="float:right;margin-right:5px;">已审核</span>';
-                            } else {
-                                row += '<span articlesId="' + articles[i].id + '" class="label label-default pull-right article_operation_edit">编辑</span><span class="label label-warning" style="float:right;margin-right:5px;">审核中</span>';
-                            }
-
-                        }
-                    }
-                    row += '</div>';
-                    row += '</div>';
-                    row += '</div></li>';
-                    $("div.x-article-body").append(row);
-                }
-                if (edgexClubMainModule.loginIsVaild) {
-                    if (userInfo && userInfo.id == userId) {
-                        $("div.article_operation").show();
-                    }
-                }
-                $("span.article_operation_edit").on('click', function() {
-                    var articlesId = $(this).attr("articlesId");
-                    window.location.href = "/article/edit/" + userName + "/" + articlesId;
-                });
-                $("div.article_operation span.delete").on('click', function() {
-                    $('#myModal div.modal-body').empty();
-                    $('#myModal div.modal-body').append("  确定要删除吗？");
-                    $('#myModal').modal('show');
-                });
-            }
-        });
-    }
-
-    function deleteArticle() {
-        $('#myModal').modal('hide');
-        // var articlesId =  $("div.article_intro").attr("articlesId");
-        // $.ajax({
-        //   url:"/api/v1/article/"+articlesId,
-        //   type:"GET",
-        //   success:function(data){
-        //     $('#myModal div.modal-body').empty();
-        //     $('#myModal div.modal-body').append("  删除成功！");
-        //     $('#myModal').modal('show');
-        //   }
-        // });
-    }
-
-    $(document).ready(function() {
-        loadHotArticle();
-        loadUserMessage();
-        loadUserAllArticles();
-    });
-</script>
-
-{{end}}
+    {{end}}

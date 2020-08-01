@@ -8,18 +8,21 @@ import (
 	"math"
 	"strconv"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
 	TemplPathPrefix  = "static/templates/"
 	BaseTemplatePath = "static/templates/base.html"
-	Header_Nav       = "static/templates/header_nav.html"
+	Header_Nav_Path  = "static/templates/header_nav.html"
 )
 
 var TemplateStore map[string]*template.Template
 
-var dataFormate = template.FuncMap{
-	"fdate": formatDate,
+var funcs = template.FuncMap{
+	"fdate":     formatDate,
+	"bsonIdStr": convertBsonToStr,
 }
 
 func init() {
@@ -27,25 +30,38 @@ func init() {
 		TemplateStore = make(map[string]*template.Template)
 	}
 
-	indexTpl := TemplPathPrefix + "index.html"
-	articleTpl := TemplPathPrefix + "/article.html"
-	article_addTpl := TemplPathPrefix + "/article_add.html"
-	article_editTpl := TemplPathPrefix + "/article_edit.html"
-	userhomeTpl := TemplPathPrefix + "/userhome.html"
+	indexTplPath := TemplPathPrefix + "index.html"
+	articleTplPath := TemplPathPrefix + "article.html"
+	articleAddTplPath := TemplPathPrefix + "article_add.html"
+	articleEditTplPath := TemplPathPrefix + "article_edit.html"
+	userhomeTplPath := TemplPathPrefix + "userhome.html"
 
-	index := template.New(indexTpl).Funcs(dataFormate)
-	article := template.New(articleTpl).Funcs(dataFormate)
-	article_add := template.New(article_addTpl).Funcs(dataFormate)
-	article_edit := template.New(article_editTpl).Funcs(dataFormate)
-	userhome := template.New(userhomeTpl).Funcs(dataFormate)
+	commentTplPath := TemplPathPrefix + "comment.tpl"
+	replyTplPath := TemplPathPrefix + "reply.tpl"
+
+	indexTpl := template.New(indexTplPath).Funcs(funcs)
+	articleTpl := template.New(articleTplPath).Funcs(funcs)
+	articleAddTpl := template.New(articleAddTplPath).Funcs(funcs)
+	articleEditTpl := template.New(articleEditTplPath).Funcs(funcs)
+	userhomeTpl := template.New(userhomeTplPath).Funcs(funcs)
+
+	commentTpl := template.New(commentTplPath).Funcs(funcs)
+	replyTpl := template.New(replyTplPath).Funcs(funcs)
 
 	// all, err := template.ParseGlob(TemplPathPrefix + ".html")
 
-	TemplateStore["index"] = template.Must(index.ParseFiles(indexTpl, Header_Nav, BaseTemplatePath))
-	TemplateStore["article"] = template.Must(article.ParseFiles(articleTpl, Header_Nav, BaseTemplatePath))
-	TemplateStore["article_add"] = template.Must(article_add.ParseFiles(article_addTpl, Header_Nav, BaseTemplatePath))
-	TemplateStore["article_edit"] = template.Must(article_edit.ParseFiles(article_editTpl, Header_Nav, BaseTemplatePath))
-	TemplateStore["userhome"] = template.Must(userhome.ParseFiles(userhomeTpl, Header_Nav, BaseTemplatePath))
+	TemplateStore["index"] = template.Must(indexTpl.ParseFiles(indexTplPath, Header_Nav_Path, BaseTemplatePath))
+	TemplateStore["article"] = template.Must(articleTpl.ParseFiles(articleTplPath, Header_Nav_Path, BaseTemplatePath))
+	TemplateStore["article_add"] = template.Must(articleAddTpl.ParseFiles(articleAddTplPath, Header_Nav_Path, BaseTemplatePath))
+	TemplateStore["article_edit"] = template.Must(articleEditTpl.ParseFiles(articleEditTplPath, Header_Nav_Path, BaseTemplatePath))
+	TemplateStore["userhome"] = template.Must(userhomeTpl.ParseFiles(userhomeTplPath, Header_Nav_Path, BaseTemplatePath))
+
+	TemplateStore["commentTpl"] = template.Must(commentTpl.ParseFiles(commentTplPath))
+	TemplateStore["replyTpl"] = template.Must(replyTpl.ParseFiles(replyTplPath))
+}
+
+func convertBsonToStr(bsonId bson.ObjectId) string {
+	return bsonId.Hex()
 }
 
 func formatDate(t int64) string {
@@ -54,7 +70,7 @@ func formatDate(t int64) string {
 
 	now := time.Now().UnixNano() / 1000000
 	ct := now - t
-	if ct < 0 {
+	if ct <= 1000 { // 1秒以内
 		return "刚刚"
 	}
 	var res string

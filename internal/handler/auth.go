@@ -9,12 +9,12 @@ import (
 	"edgex-club/internal/model"
 	"edgex-club/internal/repository"
 	"encoding/json"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	mux "github.com/gorilla/mux"
 )
@@ -89,8 +89,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		mm["userInfo"] = creds
 		result, _ := json.Marshal(mm)
 		http.SetCookie(w, &http.Cookie{
-			Name:  "edgex-club-token",
-			Value: token,
+			Name:     "edgex-club-token",
+			Value:    token,
+			HttpOnly: true,
 			//Expires: expirationTime,
 		})
 		w.Header().Set("Content-Type", "application/json;charset=utf-8")
@@ -134,7 +135,7 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 		Id:        u.Id.Hex(),
 	}
 
-	credsByte, _ := json.Marshal(creds)
+	// credsByte, _ := json.Marshal(creds)
 
 	token, err := authorization.NewToken(creds)
 	if err != nil {
@@ -145,20 +146,22 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("User login: %v\n", u)
 
-	t, _ := template.ParseFiles("static/redirect.html")
-	data := ReturnLoginUserToPageData{
-		UserInfo:    string(credsByte),
-		Token:       token,
-		UserPrePage: userPrePage,
-	}
+	// t, _ := template.ParseFiles("static/redirect.html")
+	// data := ReturnLoginUserToPageData{
+	// 	UserInfo:    string(credsByte),
+	// 	Token:       token,
+	// 	UserPrePage: userPrePage,
+	// }
 
 	http.SetCookie(w, &http.Cookie{
-		Name:  "edgex-club-token",
-		Value: token,
-		//Expires: expirationTime,
+		Name:     "Authorization",
+		Value:    token,
+		HttpOnly: true,
+		Path:     "/",
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
 	})
-	// http.Redirect(w, r, userPrePage, http.StatusTemporaryRedirect)
-	t.Execute(w, data)
+	http.Redirect(w, r, userPrePage, http.StatusTemporaryRedirect)
+	// t.Execute(w, data)
 }
 
 func getGithubTokenByCode(code string) string {

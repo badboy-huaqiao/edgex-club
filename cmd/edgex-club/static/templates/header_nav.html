@@ -3,71 +3,27 @@
 // SPDX-License-Identifier: GPL-2.0 
 -->
 
-
-
 {{define "header_nav"}}
-
 <nav class="navbar navbar-dark bg-dark">
     <div class="container">
         <a class="navbar-brand" href="/">EdgeXFoundry中国社区</a>
-        <!-- <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button> -->
-        <!-- <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            
-
-        </div> -->
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
                 <a class="nav-link" href="https://docs.edgexfoundry.org" target="_blank">官方文档</a>
             </li>
-
         </ul>
 
         <div class="my-2 my-lg-0 ">
-            <a class="navbar-text text-light" href="/article/add "><i class="fa fa-edit fa-fw "></i>发帖</a>
-            <a class="navbar-text header_user d-print-none" href="">
-                <img src=" " alt="" class="rounded-circle" style="width:22px;height:22px; ">
-                <span class="badge badge-pill badge-danger">99+</span>
+            <a class="navbar-text text-light" href="/article/add "><i class="fa fa-edit fa-fw "></i>发帖</a> 
+            {{if ne .CredUser.Name ""}}
+            <a class="header_user navbar-text" href="/user/{{.CredUser.Name}}">
+                <img src="{{.CredUser.AvatarUrl}}" alt="" class="rounded-circle" style="width:22px;height:22px; ">
+                <span class="badge badge-pill badge-danger"></span>
             </a>
-            <a class="header_login navbar-text text-light"><span>登录</span></a>
+            {{else}}
+            <a class="header_login navbar-text text-light"><span>登录</span></a> 
+            {{end}}
         </div>
     </div>
 </nav>
-
 {{end}}
-
-
-
-
-<!-- 
-<div class="header ">
-    <div class="container ">
-        <div class="title " style="display:inline-block; ">
-            <a href="/ "><i class="fa fa-home fa-fw "></i>EdgeX Foundry中国社区</a>
-        </div>
-        <div class="title-l " style="display:inline-block;position: relative; ">
-            <a href="http://docs.edgexfoundry.org " target="_blank ">官方文档</a>
-        </div>
-        <div style="display:inline-block; " class="pull-right ">
-            <div class="header_post ">
-                <a><span><i class="fa fa-edit fa-fw "></i>发帖</span></a>
-            </div>
-
-            <div class="header_user " style="display:none; position:relative!important; ">
-                <div class="dropdown ">
-                    <a href=" ">
-                        <img src=" " alt=" " style="width:22px;height:22px;margin:0;margin-left:5px;padding:0;border-radius:15%;border:1px solid rgb(148, 44, 73, 0.5); ">
-                        <span class="badge " style="display:none;position:relative;left:-10px;top:-10px;background-color:red!important; ">99+</span>
-                    </a>
-                </div>
-            </div>
-
-
-            <div class="header_login " style="margin-left:5px; ">
-                <a><span>登录</span></a>
-            </div>
-        </div>
-    </div>
-</div>
--->

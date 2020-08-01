@@ -70,7 +70,6 @@ func CheckToken(token string) (claims *CustomClaims, ok bool) {
 	}
 
 	if claims, ok := jwtToken.Claims.(*CustomClaims); ok && jwtToken.Valid {
-		log.Printf("claims============%v\n", claims)
 		return claims, true
 	}
 

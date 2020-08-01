@@ -12,68 +12,8 @@
 <script type="text/javascript" src="/public/vendors/showdown/dist/showdown.min.js.map"></script>
 <script type="text/javascript" src="/public/vendors/showdown/dist/showdown.min.js"></script>
 <style media="screen">
-    .x-title {
-        /*background-color: rgba(148, 44, 73, 0.2)!important;*/
-        font-size: medium;
-        /*font-weight: bold;*/
-        /*color: white !important;*/
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-    }
-    
-    .user_profile {
-        margin-top: 10px;
-    }
-    
-    .user_profile a {
-        color: inherit;
-        text-decoration: none;
-    }
-    
-    .user_profile img {
-        width: 51px;
-        height: 51px;
-        display: inline-block;
-        border-radius: 50%;
-        border: 1px solid rgba(148, 44, 73, 0.5);
-        outline: 0;
-    }
-    
-    .user_profile span {
-        font-size: medium;
-        font-weight: bold;
-        margin-left: 5px;
-    }
-    
-    .user_profile_data {
-        height: 40px;
-        margin-bottom: 5px;
-    }
-    
-    .user_profile_data {
-        margin-top: 15px;
-    }
-    
-    .user_profile_data dl {
-        display: inline-block;
-        text-align: center;
-        border-top: 5px;
-    }
-    
-    #comment_context {
-        margin-bottom: 5px;
-        height: 100px !important;
-        display: block;
-        width: 100%;
-        padding: 7px 8px;
-        background: #fff;
-        /*border: 1px solid #c1c1c1;*/
-        border-radius: 3px;
-        resize: none;
-        font-size: 14px;
-        line-height: 22px;
-        outline: none;
+    span.badge.pull-right:hover {
+        cursor: pointer;
     }
     
     .reply_context {
@@ -83,209 +23,114 @@
         width: 100%;
         padding: 7px 8px;
         background: #fff;
-        /*border: 1px solid #c1c1c1;*/
         border-radius: 4px;
         resize: none;
         font-size: 14px;
         line-height: 22px;
         outline: none;
     }
-    
-    div.comment_reply_opts:hover {
-        cursor: default;
-    }
-    
-    div.commit_comment:hover {
-        cursor: default;
-        color: black!important;
-    }
-    
-    div.comment_reply_opts:hover {
-        cursor: default;
-        color: black !important;
-    }
-    
-    div.reply_reply_opts:hover {
-        cursor: default;
-        color: black !important;
-    }
-    
-    div.commit_reply:hover {
-        cursor: default;
-        color: black !important;
-    }
-    
-    .header a {
-        color: inherit;
-        text-decoration: none!important;
-    }
-    
-    .comment_list a {
-        text-decoration: none!important;
-    }
-    
-    #num {
-        font-weight: 700;
-        font-size: 22px;
-        font-style: italic;
-        font-family: Constantia, Georgia;
-    }
 </style>
 </head>
 
-{{end}} 
-
-{{define "body"}}
+{{end}} {{define "body"}}
 
 <div class="user_article_main">
-    <div class="container" style="margin-top:75px;">
+    <div class="container" style="margin-top: 10px;">
         <div class="row">
             <div class="col-sm-3 col-md-3 col-lg-3">
-                <div class="panel panel-default">
-                    <div class="panel-heading x-title">作者信息</div>
-                    <div class=" panel-body">
-                        <div class="user_profile">
-                            <a href="/user/{{.UserName}}" target="_blank"><img src="{{.AvatarUrl}}" alt=""></a>
-                            <a href="/user/{{.UserName}}" target="_blank">
-                                <span>{{.UserName}}</span>
+
+                <div class="card">
+                    <div class="card-header">作者信息</div>
+                    <div class="card-body">
+                        <div class="media">
+                            <a href="/user/{{.UserName}}">
+                                <img src="{{.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="">
                             </a>
-                        </div>
-                        <div style="border-top:1px solid gray;margin-top:10px;"></div>
-                        <div class="user_profile_data">
-                            <dl style="margin-left:10px;">
-                                <dt>文章</dt>
-                                <dd>{{.ArticleCount}}</dd>
-                            </dl>
-                            <dl style="margin-left:10px;">
-                                <dt>评论</dt>
-                                <dd>0</dd>
-                            </dl>
+                            <div class="media-body">
+                                <h5 class="card-title">{{.UserName}}</h5>
+                                <p class="card-text">文章&nbsp;&nbsp;{{.ArticleCount}}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="panel panel-default x-hot-article">
-                    <div class="panel-heading">热门文章</div>
-                    <div class="panel-body">
-
-                        <ul class="list-unstyled">
-                            {{range $k,$a := .HotArticles}}
-                            <li><a href="/user/{{$a.UserName}}/article/$a.Id.Hex" target="_blank"><u>{{$a.Title}}</u></a></li>
-                            {{end}}
-                        </ul>
-
-                    </div>
-                </div>
-
             </div>
             <div class="col-sm-9 col-md-9 col-lg-9">
-                <div class="panel panel-default">
-                    <div class="panel-heading x-title">{{.ArticleTitle}}</div>
-
-                    <div class="panel-body x-article-body user_article_content">
+                <div class="card">
+                    <div class="card-header">{{.ArticleTitle}}</div>
+                    <div class="card-body">
                         <div class="article_info" style="border-bottom:1px solid #e36209;padding:5px 0;margin-bottom:15px;color:gray;">
-                            <span id="articleModified">最后更新于：<span> </span></span>
-                            <span id="readCount" style="float:right;">阅读数：<span ></span></span>
+                            <span id="articleModified">最后更新于：{{.ArticleModified | fdate}}</span>
+                            <span id="readCount" style="float:right;">阅读数：{{.ReadCount}}</span>
                         </div>
-                        <div id="markdown_data_show" class="" style="padding:0;">
+                        <div id="markdown_data_show" style="padding:0;">
 
-                        </div>
-                        <!-- <div class="markdown-body editormd-html-preview" style="padding:0;" id="test-editormd-view">
-                  <textarea style="display:none;" name="test-editormd-markdown-doc">###Hello world!</textarea>
-                </div> -->
-                    </div>
-                </div>
-                <div class="panel panel-default" style="padding:0;outline:none;border:none;">
-                    <!-- <div class="panel-heading x-title">全部评论</div> -->
-                    <div class="panel-body" style="padding:0;outline:none;border:none;">
-                        <textarea id="comment_context" maxlength="140" onkeydown="getNum(this);" onkeyup="getNum(this);"></textarea>
-                        <div class="" style="padding:0 10px;background-color:#f4f5f5!important;">
-                            <div id="comment_context_count" style="float:left;color:gray;display:inline-block;">
-                                还可输入<span id="num">140</span>字
-                            </div>
-                            <div class="commit_comment" onclick="postComment()" style="float:right;color:rgb(148, 44, 73);outline:none;display:inline-block;">发表评论</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="panel panel-default" style="padding:0;">
-                    <div class="panel-heading x-title">全部评论</div>
-                    <div class="panel-body" style="padding:10px;">
-                        <div class="comment_list">
-                            {{range $key,$comment := .Comments}}
+                <div class="card" style="margin-top:10px;">
+                    <textarea class="form-control" id="comment_context" rows="3" style="outline:none;" placeholder="请输入..."></textarea>
+                    <button type="button" class="btn btn-info btn-sm pull-right" onclick="postComment()">发表评论</button>
+                </div>
 
-                            <div class="per_item_comment" id="{{$comment.Id.Hex}}" commentId="{{$comment.Id.Hex}}" userName="{{$comment.UserName}}" style="clear:both;padding-bottom:40px;">
-                                <div class="comment_user_face" style="float:left;margin:0;padding:0;">
-                                    <a href="/user/{{$comment.UserName}}" target="_blank">
-                                        <img src="{{$comment.UserAvatarUrl}}" alt="" style="width:30px;height:30px;margin:0;padding:0;border-radius:50%;border:1px solid rgba(148, 44, 73, 0.5);">
-                                    </a>
+                <div class="card" style="margin-top:10px;">
+                    <div class="card-header">全部评论</div>
+
+                    <div class="list-group list-group-flush all-comment-main">
+                        {{range $key,$comment := .Comments}}
+                        <!-- comment -->
+                        <div class="list-group-item list-group-item-action">
+                            <div class="media">
+                                <a href="/user/{{$comment.UserName}}"><img src="{{$comment.UserAvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="..."></a>
+                                <div class="media-body">
+                                    <p class="mt-0 mb-1">{{$comment.Content}}</p>
+                                    <span class="badge badge-secondary">{{$comment.Created | fdate}}</span>
+                                    <span class="badge badge-secondary pull-right" onclick="showReply({{$comment.Id.Hex}})">回复</span>
                                 </div>
-                                <div class="" style="margin-left:35px;">
-                                    <div class="content_text" style="padding:0;">
-                                        <a href="/user/{{$comment.UserName}}" target="_blank">{{$comment.UserName}}</a>{{$comment.Content}}
-                                    </div>
-                                    <div class="comment_opts">
-                                        <div class="comment_time" style="float:left;margin-top:5px;display:inline-block;"><span style="color:rgba(148, 44, 73, 0.5);">{{$comment.Created | fdate}}</span></div>
-                                        <div class="comment_reply_opts" onclick="showReply()" style="float:right;color:rgba(148, 44, 73, 0.5);display:inline-block;">回复</div>
-                                        <div class="pre_reply" toUserName="{{$comment.UserName}}" style="background-color:#f4f5f5;display:none;clear:both;padding:5px;height:80px;margin:8px 0;">
-                                            <textarea name="name" class="reply_context" style="outline:none;" placeholder="回复@{{$comment.UserName}}："></textarea>
-                                            <div class="commit_reply" onclick="reply(event)" style="float:right;color:rgba(148, 44, 73, 0.5);">提交回复</div>
-                                        </div>
-                                        <div class="reply_list" style="background-color:#f4f5f5;clear:both;padding:5px;">
-                                            {{range $cId,$replys := $.ReplysMap}} {{if eq $cId $comment.Id.Hex}} {{range $idex,$r := $replys}}
-                                            <div class="per_reply_item" id="{{$r.Id.Hex}}" userName="{{$r.FromUserName}}" style="border-bottom:1px solid gray;margin-bottom:5px;">
-                                                <div class="">
-                                                    <a href="/user/{{$r.FromUserName}}" target="_blank">{{$r.FromUserName}}：</a> 回复<a href="/user/{{$r.ToUserName}}" target="_blank">@{{$r.ToUserName}}：</a> {{$r.Content}}
-                                                </div>
-                                                <div class="" style="clear:right;">
-                                                    <div class="reply_time" style="margin-top:5px;display:inline-block;">
-                                                        <span style="color:rgba(148, 44, 73, 0.5);">{{$r.Created | fdate}}</span>
-                                                    </div>
-                                                    <div class="reply_reply_opts" onclick="showReply()" style="float:right;color:rgba(148, 44, 73, 0.5);display:inline-block;">
-                                                        回复
-                                                    </div>
-                                                    <div class="pre_reply" style="background-color:white;;display:none;clear:both;padding:5px;height:80px;margin:8px 0;">
-                                                        <textarea name="name" class="reply_context" style="outline:none;" placeholder="回复@：{{$r.ToUserName}}"></textarea>
-                                                        <div class="commit_reply" onclick="reply(event) " style="float:right;color:rgba(148, 44, 73, 0.5);">
-                                                            提交回复
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {{else}} {{end}} {{end}} {{else}} {{end}}
+                            </div>
+                            <div id="{{$comment.Id.Hex}}" style="display: none;margin-top:5px;">
+                                <textarea class="reply_context" style="outline:none;" placeholder="回复@：{{$comment.UserName}}"></textarea>
+                                <span class="badge badge-secondary pull-right" onclick="reply({{$comment.Id.Hex}},{{$comment.UserName}},{{$comment.Id.Hex}})">提交回复</span>
+                            </div>
+                            <!-- reply -->
+                            <div class="list-group list-group-flush" id="{{$comment.Id.Hex}}-reply-list">
+                                {{range $cId,$replys := $.ReplysMap}} {{if eq $cId $comment.Id.Hex}} {{range $idex,$r := $replys}}
+                                <div class="list-group-item list-group-item-action list-group-item-secondary">
+                                    <div class="media">
+                                        <div class="media-body">
+                                            <p class="mt-0">
+                                                <a href="/user/{{$r.FromUserName}}">{{$r.FromUserName}}</a>：回复 <a href="/user/{{$r.ToUserName}}">@{{$r.ToUserName}}：</a> {{$r.Content}}
+                                            </p>
+                                            <span class="badge badge-secondary">{{$r.Created | fdate}}</span>
+                                            <span class="badge badge-secondary pull-right" onclick="showReply({{$r.Id.Hex}})">回复</span>
                                         </div>
                                     </div>
+                                    <div id="{{$r.Id.Hex}}" style="display: none;margin-top:5px;">
+                                        <textarea class="reply_context" style="outline:none;" placeholder="回复@：{{$r.FromUserName}}"></textarea>
+                                        <span class="badge badge-secondary pull-right" onclick="reply({{$comment.Id.Hex}},{{$r.FromUserName}},{{$r.Id.Hex}})">提交回复</span>
+                                    </div>
                                 </div>
-                                {{ else }}
-                                <div class="no_comment" style="color:gray;text-align:center;display:none;">
-                                    暂无评论
-                                </div>
-                                {{end}}
+                                {{end}} {{end}} {{end}}
                             </div>
                         </div>
+                        {{end}}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
+    <div class="modal fade" id="myAlertModal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">提示</h4>
-                </div>
                 <div class="modal-body">
-
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+                    <button type="button" class="btn btn-secondary  btn-sm btn-block" data-dismiss="modal">确定</button>
                 </div>
             </div>
         </div>
     </div>
-
     <script src="/public/vendors/markdown/editor/lib/marked.min.js"></script>
     <script src="/public/vendors/markdown/editor/lib/prettify.min.js"></script>
     <script src="/public/vendors/markdown/editor/lib/raphael.min.js"></script>
@@ -299,16 +144,13 @@
         var userName = "{{.UserName}}"
 
         function postComment() {
-            $("div.commit_comment").hide();
-            if (!edgexClubMainModule.loginIsVaild) {
-                window.location.href = "/login.html"
-            }
-            var comment_context = $("#comment_context").val();
+            $(this).prop("disabled", true);
+            var comment_context_val = $("#comment_context").val().trim();
 
-            if (comment_context.length == 0) {
-                $('#myModal div.modal-body').empty();
-                $('#myModal div.modal-body').append("  评论内容不能为空 ！");
-                $('#myModal').modal('show');
+            if (comment_context_val.length == 0) {
+                $('#myAlertModal div.modal-body').empty();
+                $('#myAlertModal div.modal-body').append("评论内容不能为空 ！");
+                $('#myAlertModal').modal('show');
                 return;
             }
 
@@ -316,191 +158,71 @@
                 url: "/api/v1/auth/comment/" + articleId,
                 type: "POST",
                 data: JSON.stringify({
-                    "content": comment_context
+                    "content": comment_context_val
                 }),
                 success: function(data) {
-                    var str = '<div class="per_item_comment" id="' + data.id + '" commentId="' + data.id + '" userName=' + data.userName + ' style="clear:both;padding-bottom:40px;">';
-                    str += '<div class="comment_user_face" style="float:left;margin:0;padding:0;">'
-                    str += '<a href="/user/' + data.userName + '" target="_blank">'
-                    str += '<img src="' + data.userAvatarUrl + '" alt="" style="width:30px;height:30px;margin:0;padding:0;border-radius:50%;border:1px solid rgba(148, 44, 73, 0.5);">'
-                    str += '</a>'
-                    str += '</div>'
-                    str += '<div class="" style="margin-left:35px;">'
-                    str += '<div class="content_text" style="padding:0;">'
-                    str += '<a href="/user/' + data.userName + '" target="_blank">' + data.userName + '：</a>'
-                    str += data.content
-                    str += '</div>'
-                    str += '<div class="comment_opts">'
-                    str += '<div class="comment_time" style="float:left;margin-top:5px;display:inline-block;"><span style="color:rgba(148, 44, 73, 0.5);">' + edgexFmtDate(data.created) + '</span></div>'
-                    str += '<div class="comment_reply_opts" onclick="showReply()" style="float:right;color:rgba(148, 44, 73, 0.5);display:inline-block;">回复</div>'
-                    str += '<div class="pre_reply" toUserName="' + data.userName + '" style="background-color:#f4f5f5;display:none;clear:both;padding:5px;height:80px;margin:8px 0;">'
-                    str += '<textarea name="name" class="reply_context" style="outline:none;" placeholder="回复@' + data.userName + '："></textarea>'
-                    str += '<div class="commit_reply" onclick="reply(event)" style="float:right;color:rgba(148, 44, 73, 0.5);">提交回复</div></div>'
-                    str += '<div class="reply_list" style="background-color:#f4f5f5;clear:both;padding:5px;display:none;"></div>';
-                    str += '</div></div>';
-
-                    $("div.comment_list").append(str);
-                    $("div.comment_list div.no_comment").hide();
-                    $("div.commit_comment").show();
-                    $("#comment_context").empty();
-                    $('#myModal div.modal-body').empty();
-                    $('#myModal div.modal-body').append("  评论成功！");
-                    $('#myModal').modal('show');
-
-                    $("#comment_context").empty();
+                    $('#myAlertModal div.modal-body').empty();
+                    $('#myAlertModal div.modal-body').append("评论成功！");
+                    $('#myAlertModal').modal('show');
+                    $("#comment_context").val("");
+                    $(".all-comment-main").prepend(data)
                 },
                 statusCode: {
                     3001: function() {
-                        $('#myModal div.modal-body').empty();
-                        $('#myModal div.modal-body').append("  请文明发言！");
-                        $('#myModal').modal('show');
+                        $('#myAlertModal div.modal-body').empty();
+                        $('#myAlertModal div.modal-body').append("  请文明发言！");
+                        $('#myAlertModal').modal('show');
                     }
                 }
             });
         }
 
-        function reply(event) {
-            if (!edgexClubMainModule.loginIsVaild) {
-                window.location.href = "/login.html"
-            }
-            event.preventDefault();
-            var reply_context_tag = $(event.currentTarget).siblings(".reply_context")[0]
-            var reply_context = $(event.currentTarget).siblings(".reply_context").val();
 
-            if (reply_context.length == 0) {
-                $('#myModal div.modal-body').empty();
-                $('#myModal div.modal-body').append("  回复内容不能为空 ！");
-                $('#myModal').modal('show');
+        function reply(commentId, toUser, itemId) {
+            var reply_context_val = $("#" + itemId).children("textarea").val().trim()
+
+            if (reply_context_val.length == 0) {
+                $('#myAlertModal div.modal-body').empty();
+                $('#myAlertModal div.modal-body').append("回复内容不能为空 ！");
+                $('#myAlertModal').modal('show');
                 return;
             }
 
-            // if(reply_context.length > 140){
-            //   $('#myModal div.modal-body').empty();
-            //   $('#myModal div.modal-body').append("  超出140个字符！");
-            //   $('#myModal').modal('show');
-            //   return;
-            // }
-            var toUserName = $(event.currentTarget).parents("div.per_reply_item").attr("userName") || $(event.currentTarget).parents("div.per_item_comment").attr("userName");
-            var commentId = $(event.currentTarget).parents("div.per_item_comment").attr("commentId");
-            var reply_list = $(event.currentTarget).parents("div.per_item_comment").find("div.reply_list")[0];
-
             $.ajax({
-                url: "/api/v1/auth/reply/" + commentId + "/" + toUserName,
+                url: "/api/v1/auth/reply/" + commentId + "/" + toUser,
                 type: "POST",
                 data: JSON.stringify({
-                    "content": reply_context
+                    "content": reply_context_val
                 }),
                 success: function(data) {
-
-                    var str = '<div class="per_reply_item" id="' + data.id + '"  userName="' + data.fromUserName + '" style="border-bottom:1px solid gray;margin-bottom:5px;">'
-                    str += '<div class="">'
-                    str += '<a href="/user/' + data.fromUserName + '" target="_blank">' + data.fromUserName + '：</a> 回复<a href="/user/' + data.toUserName + '" target="_blank">@' + data.toUserName + '：</a>'
-                    str += data.content
-                    str += '</div>'
-                    str += '  <div class="" style="clear:right;">'
-                    str += '<div class="reply_time" style="margin-top:5px;display:inline-block;">'
-                    str += '<span style="color:rgba(148, 44, 73, 0.5);">' + edgexFmtDate(data.created) + '</span>'
-                    str += '</div>'
-                    str += '  <div class="reply_reply_opts" onclick="showReply()" style="float:right;color:rgba(148, 44, 73, 0.5);display:inline-block;">'
-                    str += '回复'
-                    str += '  </div>'
-                    str += '<div class="pre_reply" style="background-color:white;;display:none;clear:both;padding:5px;height:80px;margin:8px 0;">'
-                    str += '  <textarea name="name" class="reply_context" style="outline:none;"  placeholder="回复@' + data.toUserName + '："></textarea>'
-                    str += '<div class="commit_reply" onclick="reply(event) "style="float:right;color:rgba(148, 44, 73, 0.5);">'
-                    str += '提交回复'
-                    str += '</div></div></div></div>'
-
-                    $(reply_list).append(str);
-                    $(reply_list).show();
-                    hideReply();
-                    $(reply_context_tag).empty();
+                    $('#myAlertModal div.modal-body').empty();
+                    $('#myAlertModal div.modal-body').append("回复成功！");
+                    $('#myAlertModal').modal('show');
+                    hideReply(itemId)
+                    $("#" + itemId).children("textarea").val("")
+                    $("#" + commentId + "-reply-list").prepend(data)
                 },
                 statusCode: {
                     3001: function() {
-                        $('#myModal div.modal-body').empty();
-                        $('#myModal div.modal-body').append("  请文明发言！");
-                        $('#myModal').modal('show');
+                        $('#myAlertModal div.modal-body').empty();
+                        $('#myAlertModal div.modal-body').append("  请文明发言！");
+                        $('#myAlertModal').modal('show');
                     }
                 }
             });
         }
 
-        function hideReply() {
-            $("div.pre_reply").hide();
+        function hideReply(itemId) {
+            $("#" + itemId).hide();
         }
 
-        function showReply() {
-            if (!edgexClubMainModule.loginIsVaild) {
-                window.location.href = "/login.html"
-            }
-            $(event.currentTarget).siblings("div.pre_reply").show();
-        }
-
-
-        function loadAllComments(articleId) {
-            //debugger
-            $.ajax({
-                url: "/api/v1/comments/" + articleId,
-                type: "GET",
-                success: function(data) {
-
-                    if (data.length == 0) {
-                        $("div.comment_list div.no_comment").show();
-                    }
-                    RenderAllComments(data);
-                    for (var i = 0; i < data.length; i++) {
-                        loadAllReplys(data[i]["id"]);
-                    }
-
-                }
-            });
-        }
-
-        function renderAllReplys(datas, commentId) {
-
-            for (var i = 0; i < datas.length; i++) {
-                var reply_list = $("#" + commentId).find("div.reply_list")[0];
-                var data = datas[i];
-                var str = '<div class="per_reply_item" id="' + data.id + '"  userName="' + data.fromUserName + '" style="border-bottom:1px solid gray;margin-bottom:5px;">'
-                str += '<div class="">'
-                str += '<a href="/user/' + data.fromUserName + '" target="_blank">' + data.fromUserName + '：</a> 回复<a href="/user/' + data.toUserName + '" target="_blank">@' + data.toUserName + '：</a>'
-                str += data.content
-                str += '</div>'
-                str += '  <div class="" style="clear:right;">'
-                str += '<div class="reply_time" style="margin-top:5px;display:inline-block;">'
-                str += '<span style="color:rgba(148, 44, 73, 0.5)">' + edgexFmtDate(data.created) + '</span>'
-                str += '</div>'
-                str += '  <div class="reply_reply_opts" onclick="showReply()" style="float:right;color:rgba(148, 44, 73, 0.5);display:inline-block;">'
-                str += '回复'
-                str += '  </div>'
-                str += '<div class="pre_reply" style="background-color:white;;display:none;clear:both;padding:5px;height:80px;margin:8px 0;">'
-                str += '  <textarea name="name" class="reply_context" style="outline:none;"  placeholder="回复@' + data.toUserName + '："></textarea>'
-                str += '<div class="commit_reply" onclick="reply(event) "style="float:right;color:rgba(148, 44, 73, 0.5);">'
-                str += '提交回复'
-                str += '</div></div></div></div>'
-
-                $(reply_list).append(str);
-                $(reply_list).show();
-                hideReply();
-            }
-        }
-
-        function getNum(get) {
-            var are = document.getElementById("text");
-            var num = document.getElementById("num");
-            if (get.value.length > 140) {
-                are.value = are.value.substring(0, 140);
-            } else {
-                num.innerHTML = (140 - get.value.length).toString();
-            }
+        function showReply(itemId) {
+            $("#" + itemId).show();
         }
 
         $(document).ready(function() {
             $.ajaxSetup({
                 cache: false, //prevent browser cache result to redirect  failed.
-                headers: {
-                    "edgex-club-token": window.localStorage.getItem("edgex-club-token")
-                },
                 statusCode: {
                     302: function() {
                         window.location.href = '/login.html?ran=' + Math.random(); //prevent browser cache result to redirect  failed.
@@ -517,23 +239,6 @@
 
                 }
             });
-            var articleModified = dateToString("{{.ArticleModified}}");
-            var readCount = "{{.ReadCount}}";
-            $("#articleModified span").text(articleModified);
-            $("#readCount span").text(readCount);
-            var userName = "{{.UserName}}"
-
-            // var article_info = JSON.parse(window.localStorage.getItem("article_info")); $("div.user_article_title > p").text(article_info["title"]);
-            // var testEditormdView;
-            // testEditormdView = editormd.markdownToHTML("test-editormd-view", {
-            //   markdown: {{.MD}},
-            //   htmlDecode: "style,script,iframe",
-            //   taskList: true,
-            //   tex: true,
-            //   flowChart: true,
-            //   sequenceDiagram: true
-            // });
-
             var converter = new showdown.Converter({
                 tables: true
             });
@@ -541,5 +246,5 @@
             document.getElementById("markdown_data_show").innerHTML = markdown_html;
         });
     </script>
-    
-{{end}}
+
+    {{end}}

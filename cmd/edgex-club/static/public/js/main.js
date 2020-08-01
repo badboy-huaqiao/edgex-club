@@ -21,15 +21,15 @@ $(document).ready(function() {
 
         }
     });
-    edgexClubMainModule.loginIsVaild = edgexClubMainModule.checkLogin();
+    // edgexClubMainModule.loginIsVaild = edgexClubMainModule.checkLogin();
     //edgexClubMainModule.loadArticleList();
-    $("div.header_login").on("click", function() {
+    $(".header_login").on("click", function() {
         mainModuleBtnGroup.login();
     });
-    $("div.header_user").on("click", function() {
+    $(".header_user").on("click", function() {
         mainModuleBtnGroup.user();
     });
-    $("div.header_post").on("click", function() {
+    $(".header_post").on("click", function() {
         mainModuleBtnGroup.post();
     });
     // $("div.header_user").mouseover(function(){
@@ -40,23 +40,23 @@ $(document).ready(function() {
     //   $("div.user_hide_info").hide()
     // });
 
-    if (edgexClubMainModule.loginIsVaild) {
-        var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
-        $.ajax({
-            url: "/api/v1/auth/message/" + userInfo.name + "/count",
-            type: "GET",
-            success: function(data) {
-                if (data == 0) {
-                    return;
-                } else if (data > 100) {
-                    $("div.header_user span.badge").text(data + "+");
-                } else {
-                    $("div.header_user span.badge").text(data);
-                }
-                $("div.header_user span.badge").show();
-            }
-        });
-    }
+    // if (edgexClubMainModule.loginIsVaild) {
+    //     var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
+    //     $.ajax({
+    //         url: "/api/v1/auth/message/" + userInfo.name + "/count",
+    //         type: "GET",
+    //         success: function(data) {
+    //             if (data == 0) {
+    //                 return;
+    //             } else if (data > 100) {
+    //                 $(".header_user span.badge").text(data + "+");
+    //             } else {
+    //                 $(".header_user span.badge").text(data);
+    //             }
+    //             $(".header_user span.badge").show();
+    //         }
+    //     });
+    // }
 });
 
 var edgexClubMainModule = {
@@ -75,7 +75,7 @@ var edgexClubMainModule = {
                     if (data == 1) {
                         isVaild = true;
                         $(".header_login").hide();
-                        $(".header_user a").prop("href", "/user/" + user["name"])
+                        $(".header_user").prop("href", "/user/" + user["name"])
                         $(".header_user img").prop("src", user["avatarUrl"])
                         $(".header_user").show();
                     } else {

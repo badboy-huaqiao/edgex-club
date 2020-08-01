@@ -4,6 +4,8 @@
 package handler
 
 import (
+	"bytes"
+	"edgex-club/internal/core"
 	"edgex-club/internal/model"
 	repo "edgex-club/internal/repository"
 	"encoding/json"
@@ -191,9 +193,13 @@ func PostReply(w http.ResponseWriter, r *http.Request) {
 		message(toUserName, fromUserName, articleId, articleUserName, "reply")
 	}()
 
-	result, _ := json.Marshal(&reply)
-	w.Header().Set("Content-Type", "application/json;charset=utf-8")
-	w.Write(result)
+	var bytesBuf bytes.Buffer
+	t := core.TemplateStore["replyTpl"]
+	if err := t.ExecuteTemplate(&bytesBuf, "reply", reply); err != nil {
+		fmt.Printf("bytesBuf err : %v\n", err.Error())
+	}
+	w.Header().Set(ContentType, ContentTypeText)
+	w.Write([]byte(bytesBuf.String()))
 
 }
 
@@ -231,9 +237,8 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 		message(articleUserName, creds.Name, articleId, articleUserName, "comment")
 	}()
 
-	result, _ := json.Marshal(&c)
-	w.Header().Set(ContentType, ContentTypeJSON)
-	w.Write(result)
+	t := core.TemplateStore["commentTpl"]
+	t.ExecuteTemplate(w, "comment", c)
 }
 
 func FindNewArticles(w http.ResponseWriter, r *http.Request) {
@@ -260,6 +265,13 @@ func FindAllArticlesByUser(w http.ResponseWriter, r *http.Request) {
 	var articles []model.Article
 	var err error
 	var filter bool
+
+	// cookie, err := r.Cookie("edgex-club-token")
+	// if err != nil {
+	// 	fmt.Printf("cookie err: %s\n", err.Error())
+	// }
+	// fmt.Printf("cookie: %s\n", cookie.String())
+
 	if creds.Id != userId {
 		filter = true
 	}

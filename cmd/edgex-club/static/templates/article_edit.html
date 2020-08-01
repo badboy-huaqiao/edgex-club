@@ -18,8 +18,8 @@
         box-sizing: border-box;
     }
     
-    .new_article_main {
-        margin-top: 75px;
+    .article_main {
+        margin-top: 25px;
     }
     
     a {
@@ -29,68 +29,74 @@
 </style>
 {{end}} {{define "body"}}
 
-<div class="new_article_main">
+<div class="article_main">
     <div class="container">
-        <div class="input-group input-group-lg" style="margin-bottom:7px;width:100%;">
-            <input id="new_article_title" value="{{if .ArticleTitle}}{{.ArticleTitle}}{{else}}{{end}}" type="text" class="form-control" placeholder="文章标题">
-            <input id="article_id_hidden" type="text" style="display:none" {{if .ArticleId}}value="{{.ArticleId}}" {{else}}{{end}}>
-        </div>
-        <div class="new_article_content" id="test-editormd">
-            <textarea style="display:none;">### Hello EdgeX Foundry !</textarea>
-        </div>
+        <ul class="nav justify-content-end">
+            <li class="nav-item ">
+                <div class="form-group">
+                    分类&nbsp;&nbsp;
+                    <select id="articleType" class="form-control" style="width:220px;display:inline-block;">
+                            <option value=""></option>
+                            <option value="综合">综合</option>
+                            <option value="视频">视频</option>
+                            <option value="讨论">讨论</option>
+                            <option value="导出微服务">导出微服务</option>
+                            <option value="核心微服务">核心微服务</option>
+                            <option value="支持微服务">支持微服务</option>
+                            <option value="设备微服务">设备微服务</option>
+                            <option value="其他">其他</option>
+                    </select>
+                </div>
+            </li>
 
-        <div class="" style="margin-bottom:10px;">
-            <!-- <div class="" style="display:inline-block;">
-          文章类型&nbsp;&nbsp;
-          <select class="form-control" style="width:220px;display:inline-block;">
-            <option>请选择</option>
-            <option value="原创">原创</option>
-            <option value="转载">转载</option>
-            <option value="翻译">翻译</option>
-          </select>
-        </div> -->
-            <div class="" style="display:inline-block;">
-                帖子分类&nbsp;&nbsp;
-                <select id="articleType" class="form-control" style="width:220px;display:inline-block;">
-            <option value="">请选择</option>
-            <option value="综合">综合</option>
-            <option value="视频">视频</option>
-            <option value="讨论">讨论</option>
-            <option value="导出微服务">导出微服务</option>
-            <option value="核心微服务">核心微服务</option>
-            <option value="支持微服务">支持微服务</option>
-            <option value="设备微服务">设备微服务</option>
-            <option value="其他">其他</option>
-          </select>
+            <li class="nav-item">
+                &nbsp;&nbsp;<button type="button" class="btn btn-success" name="button" onclick="pushArticle()">发布</button>
+                <button type="button" class="btn btn-info" name="button" onclick="saveArticle()">保存</button>
+                <button type="button" class="btn btn-primary" name="button" onclick="backToHome()">取消</button>
+            </li>
+        </ul>
+
+        <div class="card">
+            <div class="card-head">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="{{.ArticleId}}" value="{{.ArticleTitle}}">
+                </div>
             </div>
-        </div>
-        <div class="">
-            <button type="button" class="btn btn-default" name="button" onclick="pushArticle()" style="color:rgb(148, 44, 73);">发布</button>
-            <button type="button" class="btn btn-default" name="button" onclick="saveArticle()" style="color:rgb(148, 44, 73);">保存</button>
-            <button type="button" class="btn btn-default" name="button" onclick="backToHome()">返回</button>
+            <div class="new_article_content" id="test-editormd">
+                <textarea style="display:none;">### Hello EdgeX Foundry !</textarea>
+            </div>
         </div>
     </div>
 </div>
-<div class="modal" data-backdrop="static" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">提示</h4>
-            </div>
-            <div class="modal-body">
 
+<div class="modal fade" id="myModal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-secondary  btn-sm btn-block" data-dismiss="modal">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="waitModal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="">
+                    <div class="spinner-grow spinner-grow-sm text-warning " role="status" aria-hidden="true"><span class="sr-only">Loading...</span></div>
+                    发布成功！跳转中，请稍等...
+                </div>
 
             </div>
         </div>
     </div>
 </div>
+
 <script type="text/javascript">
     var testEditor;
-
     $(document).ready(function() {
         $("#articleType").find("option[value = '{{if .Type}}{{.Type}}{{else}}{{end}}']").attr("selected", "selected");
         testEditor = editormd("test-editormd", {
@@ -119,7 +125,6 @@
             },
         });
     });
-    var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
 
     function pushArticle() {
         articleCommit(true);
@@ -130,62 +135,54 @@
     }
 
     function articleCommit(posted) {
-
         $(this).prop("disabled", true);
-        if (!edgexClubMainModule.loginIsVaild) {
-            window.location.href = "/login.html"
-        }
 
         var md = testEditor.getMarkdown();
-        if (md == "") {
+        if (md.trim().length == 0) {
             $('#myModal div.modal-body').empty();
-            $('#myModal div.modal-body').append("  请填写文章内容！");
+            $('#myModal div.modal-body').append("请填写文章内容！");
             $('#myModal').modal('show');
             return
         }
-        if ($("#new_article_title").val().trim() == "") {
+        if ($("#{{.ArticleId}}").val().trim() == "") {
             $('#myModal div.modal-body').empty();
-            $('#myModal div.modal-body').append("  请填写文章标题！");
+            $('#myModal div.modal-body').append("请填写文章标题！");
             $('#myModal').modal('show');
             return;
         }
         if ($("#articleType").val().trim() == "") {
             $('#myModal div.modal-body').empty();
-            $('#myModal div.modal-body').append(" 请选择分类！ ");
+            $('#myModal div.modal-body').append("请选择分类！");
             $('#myModal').modal('show');
             return;
         }
 
         var article = {}
-        article["title"] = $("#new_article_title").val();
-        article["type"] = $("#articleType").val();
+        article["title"] = $("#{{.ArticleId}}").val().trim();
+        article["type"] = $("#articleType").val().trim();
         article["content"] = md;
         article["posted"] = posted;
-        article["userName"] = userInfo.name;
-        //更新文章
         $.ajax({
-            url: '/api/v1/auth/article/' + $("#article_id_hidden").val().trim(),
+            url: '/api/v1/auth/article/{{.ArticleId}}',
             type: "PUT",
             data: JSON.stringify(article),
             contentType: 'text/plain',
             success: function(data) {
                 if (posted) {
-                    $('#myModal div.modal-body').empty();
-                    $('#myModal div.modal-body').append("  发布成功！");
-                    $('#myModal').modal('show');
+                    $('#waitModal').modal('show');
                     window.setTimeout(function() {
-                        window.location.href = "/user/" + userInfo.name;
-                    }, 1500);
+                        window.location.href = "/user/{{.CredUser.Name}}";
+                    }, 1000);
                 } else {
                     $('#myModal div.modal-body').empty();
-                    $('#myModal div.modal-body').append("  保存成功！");
+                    $('#myModal div.modal-body').append("保存成功！");
                     $('#myModal').modal('show');
                 }
             },
             statusCode: {
                 3001: function() {
                     $('#myModal div.modal-body').empty();
-                    $('#myModal div.modal-body').append("  请文明发言！");
+                    $('#myModal div.modal-body').append("请文明发言！");
                     $('#myModal').modal('show');
                 }
             }
@@ -193,7 +190,7 @@
     }
 
     function backToHome() {
-        window.location.href = "/user/" + userInfo.name;
+        window.location.href = "/user/{{.CredUser.Name}}";
     }
 </script>
 <script src="/public/vendors/markdown/editor/lib/marked.min.js"></script>
