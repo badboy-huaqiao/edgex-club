@@ -37,6 +37,15 @@ type TodoPageData struct {
 	Type            string
 }
 
+func checkContentSize(data string) bool {
+	fixedSize := 1024 * 1024 * 5
+	result := []byte(data)
+	if len(result) > fixedSize {
+		return false
+	}
+	return true
+}
+
 func FindAllReplyByCommentId(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	vars := mux.Vars(r)
@@ -173,6 +182,12 @@ func PostReply(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "非法字符", 3001)
 		return
 	}
+
+	if ok := checkContentSize(reply.Content); !ok {
+		http.Error(w, "内容不能超过5M", http.StatusLengthRequired)
+		return
+	}
+
 	reply.Content = content
 	reply.CommentId = commentId
 	reply.FromUserName = fromUserName
@@ -215,6 +230,11 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 	if isVaild {
 		log.Println(creds.Name + ": 评论有垃圾语言")
 		http.Error(w, "非法字符", 3001)
+		return
+	}
+
+	if ok := checkContentSize(c.Content); !ok {
+		http.Error(w, "内容不能超过5M", http.StatusLengthRequired)
 		return
 	}
 	c.Content = content
@@ -281,6 +301,11 @@ func SaveNewArticle(w http.ResponseWriter, r *http.Request) {
 	userId := vars["userId"]
 	err := json.NewDecoder(r.Body).Decode(&a)
 
+	if ok := checkContentSize(a.Content); !ok {
+		http.Error(w, "内容不能超过5M", http.StatusLengthRequired)
+		return
+	}
+
 	creds := genCredsUser(r)
 
 	a.UserId = userId
@@ -314,6 +339,11 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
 		log.Printf("%s：用户提交的文章无法解析", creds.Name)
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if ok := checkContentSize(a.Content); !ok {
+		http.Error(w, "内容不能超过5M", http.StatusLengthRequired)
 		return
 	}
 
