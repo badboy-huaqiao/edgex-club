@@ -3,8 +3,8 @@
 
 .PHONY: build clean test run docker update
 
-GO=CGO_ENABLED=0 GO111MODULE=on GO
-CGO=CGO_ENABLED=1 GO111MODULE=on GO
+GO=CGO_ENABLED=0 GO111MODULE=on go
+CGO=CGO_ENABLED=1 GO111MODULE=on go
 
 MICROSERVICES=cmd/edgex-club/edgex-club
 DOCKER=docker-edgex-club
