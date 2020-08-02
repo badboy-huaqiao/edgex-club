@@ -23,6 +23,7 @@ const (
 	ContentType     string = "Content-Type"
 	ContentTypeText string = "text/plain;charset=utf-8"
 	ContentTypeJSON string = "application/json;charset=utf-8"
+	CredsUser       string = "CredsUser"
 )
 
 type TodoPageData struct {
@@ -161,9 +162,7 @@ func PostReply(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	commentId := vars["commentId"]
 
-	userStr := r.Header.Get("inner-user")
-	var creds model.Credentials
-	json.Unmarshal([]byte(userStr), &creds)
+	creds := genCredsUser(r)
 
 	fromUserName := creds.Name
 	toUserName := vars["toUserName"]
@@ -208,9 +207,7 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	articleId := vars["articleId"]
 
-	userStr := r.Header.Get("inner-user")
-	var creds model.Credentials
-	json.Unmarshal([]byte(userStr), &creds)
+	creds := genCredsUser(r)
 
 	var c model.Comment
 	json.NewDecoder(r.Body).Decode(&c)
@@ -258,19 +255,11 @@ func FindAllArticlesByUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId := vars["userId"]
 
-	userStr := r.Header.Get("inner-user")
-	var creds model.Credentials
-	json.Unmarshal([]byte(userStr), &creds)
+	creds := genCredsUser(r)
 
 	var articles []model.Article
 	var err error
 	var filter bool
-
-	// cookie, err := r.Cookie("edgex-club-token")
-	// if err != nil {
-	// 	fmt.Printf("cookie err: %s\n", err.Error())
-	// }
-	// fmt.Printf("cookie: %s\n", cookie.String())
 
 	if creds.Id != userId {
 		filter = true
@@ -317,9 +306,7 @@ func SaveNewArticle(w http.ResponseWriter, r *http.Request) {
 	userId := vars["userId"]
 	err := json.NewDecoder(r.Body).Decode(&a)
 
-	userStr := r.Header.Get("inner-user")
-	var creds model.Credentials
-	json.Unmarshal([]byte(userStr), &creds)
+	creds := genCredsUser(r)
 
 	a.UserId = userId
 	a.AvatarUrl = creds.AvatarUrl
@@ -347,12 +334,7 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	articleId := vars["articleId"]
 
-	userStr := r.Header.Get("inner-user")
-	var creds model.Credentials
-	if err := json.Unmarshal([]byte(userStr), &creds); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	creds := genCredsUser(r)
 
 	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
 		log.Printf("%s：用户提交的文章无法解析", creds.Name)
@@ -376,39 +358,6 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("用户：" + creds.Name + " 更新了文章 " + articleId)
-}
-
-func LoadEditArticleTemplate(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	vars := mux.Vars(r)
-	articleID := vars["articleId"]
-	userName := vars["userName"]
-
-	var a model.Article
-	var data TodoPageData
-	if articleID == "new" { //新文章
-		articleID = ""
-		data = TodoPageData{
-			ArticleId: articleID,
-		}
-	} else { //编辑已有文章
-		a, _ = repo.ArticleRepositotyClient().FindOne(userName, articleID)
-
-		data = TodoPageData{
-			ArticleId:    articleID,
-			MD:           a.Content,
-			ArticleTitle: a.Title,
-			Type:         a.Type,
-		}
-	}
-
-	t, err := template.ParseFiles("static/articles/edit_article.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	t.Execute(w, data)
 }
 
 func HotAuthor(w http.ResponseWriter, r *http.Request) {

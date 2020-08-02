@@ -43,14 +43,14 @@ func GeneralFilter(next http.Handler) http.Handler {
 			}
 		}
 		if ok {
-			credsByte, err := json.Marshal(claims.Credentials)
+			credsUser, err := json.Marshal(claims.Credentials)
 			if err != nil {
 				log.Println("转换creds失败！")
 				http.Error(w, "", http.StatusInternalServerError)
 				return
 			}
-			//重写请求头，用于下游服务中使用，比如一些controller中需要用到用户信息
-			r.Header.Set("inner-user", string(credsByte))
+			//重写请求头，用于下游服务中使用，比如一些handler中需要用到用户信息
+			r.Header.Set("CredsUser", string(credsUser))
 		}
 
 		next.ServeHTTP(w, r)

@@ -15,7 +15,7 @@ type User struct {
 	Modified  int64         `bson:"modified"      json:"modified"`
 }
 
-//用户登录认证之后存储用户信息，去掉敏感信息，如用户名密码等
+//Credentials 凭证用户：用户登录认证之后存储用户信息，去掉敏感信息，如用户名密码等
 type Credentials struct {
 	Id        string `json:"id"`
 	Name      string `json:"name"`

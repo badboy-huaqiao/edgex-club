@@ -9,14 +9,13 @@ import (
 	"edgex-club/internal/model"
 	"edgex-club/internal/repository"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-
-	mux "github.com/gorilla/mux"
 )
 
 type ReturnLoginUserToPageData struct {
@@ -26,27 +25,18 @@ type ReturnLoginUserToPageData struct {
 }
 type GithubUserInfo struct {
 	Id         int64
-	Login      string
+	Login      string //user name
 	Avatar_url string
 }
 
-func ValidToken(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	vars := mux.Vars(r)
-	token := vars["token"]
-
-	var isVaild string
-	_, ok := authorization.CheckToken(token)
-
-	//包括超时、被篡改等，都会无效
-	if ok {
-		isVaild = "1" //有效
-	} else {
-		isVaild = "0" //无效
+func genCredsUser(r *http.Request) *model.Credentials {
+	credsUserStr := r.Header.Get(CredsUser)
+	if credsUserStr == "" {
+		return nil
 	}
-
-	w.Header().Set("Content-Type", "text/plain;charset=utf-8")
-	w.Write([]byte(isVaild))
+	var credsUser model.Credentials
+	json.Unmarshal([]byte(credsUserStr), &credsUser)
+	return &credsUser
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -110,8 +100,18 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 	code := vars["code"][0]
 	userPrePage := vars["state"][0]
 
-	githubtoken := getGithubTokenByCode(code)
-	userInfo := getUserInfoByToken(githubtoken)
+	var githubtoken, userInfo string
+	var err error
+	if githubtoken, err = getGithubTokenByCode(code); err != nil {
+		fmt.Printf("Access github error: %s\n", err.Error())
+		http.Redirect(w, r, "/error", http.StatusTemporaryRedirect)
+		return
+	}
+	if userInfo, err = getUserInfoByToken(githubtoken); err != nil {
+		fmt.Printf("Access github error: %s\n", err.Error())
+		http.Redirect(w, r, "/error", http.StatusTemporaryRedirect)
+		return
+	}
 
 	var githubUserInfo = GithubUserInfo{}
 	jsonStr := bytes.NewReader([]byte(userInfo))
@@ -134,9 +134,6 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 		AvatarUrl: u.AvatarUrl,
 		Id:        u.Id.Hex(),
 	}
-
-	// credsByte, _ := json.Marshal(creds)
-
 	token, err := authorization.NewToken(creds)
 	if err != nil {
 		log.Println("生成token失败！")
@@ -146,13 +143,6 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("User login: %v\n", u)
 
-	// t, _ := template.ParseFiles("static/redirect.html")
-	// data := ReturnLoginUserToPageData{
-	// 	UserInfo:    string(credsByte),
-	// 	Token:       token,
-	// 	UserPrePage: userPrePage,
-	// }
-
 	http.SetCookie(w, &http.Cookie{
 		Name:     "Authorization",
 		Value:    token,
@@ -161,10 +151,9 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 	})
 	http.Redirect(w, r, userPrePage, http.StatusTemporaryRedirect)
-	// t.Execute(w, data)
 }
 
-func getGithubTokenByCode(code string) string {
+func getGithubTokenByCode(code string) (string, error) {
 	url := "https://github.com/login/oauth/access_token"
 	param := make(map[string]string, 10)
 	param["client_id"] = "8dc598397ad0cc13bed8"
@@ -174,39 +163,47 @@ func getGithubTokenByCode(code string) string {
 	bytesData, err := json.Marshal(param)
 	if err != nil {
 		log.Println("param json faild!")
+		return "", err
 	}
 	jsonStr := bytes.NewReader(bytesData)
 	request, _ := http.NewRequest("POST", url, jsonStr)
-
-	request.Header.Set("Content-Type", "application/json;charset=UTF-8")
-
-	client := &http.Client{}
+	request.Header.Set(ContentType, ContentTypeJSON)
+	client := &http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(request)
 	if err != nil {
 		log.Println("request github to get code faild!")
+		return "", err
 	}
-	// defer response.Body.Close()
+	defer response.Body.Close()
 	respBytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		log.Println("respBytes  faild!")
+		return "", err
 	}
-	//access_token=11f5681361f6448411abcb33401641fc61d9d6e4&scope=user&token_type=bearer
+
+	//tokenStr access_token=11f5681361f6448411abcb33401641fc61d9d6e4&scope=user&token_type=bearer
 	tokenStr := string(respBytes)
 	args := strings.Split(tokenStr, "&")
 	tokenInfo := strings.Split(args[0], "=")
 	token := tokenInfo[1]
 
-	return token
+	return token, nil
 }
 
-func getUserInfoByToken(token string) string {
+func getUserInfoByToken(token string) (string, error) {
 	url := "https://api.github.com/user?access_token=" + token + "&scope=user"
 	req, _ := http.NewRequest("GET", url, nil)
-	client := &http.Client{}
-	resp, _ := client.Do(req)
-	// defer resp.Body.Close()
-	userData, _ := ioutil.ReadAll(resp.Body)
-	userInfo := string(userData)
-	//log.Println(userInfo)
-	return userInfo
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Retrieve User Infor from github failed: %s", err.Error())
+		return "", err
+	}
+	defer resp.Body.Close()
+	userInfoData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Can't read response body: %s", err.Error())
+		return "", err
+	}
+	return string(userInfoData), nil
 }

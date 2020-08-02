@@ -39,6 +39,8 @@ func init() {
 	commentTplPath := TemplPathPrefix + "comment.tpl"
 	replyTplPath := TemplPathPrefix + "reply.tpl"
 
+	errorTplPath := TemplPathPrefix + "error.html"
+
 	indexTpl := template.New(indexTplPath).Funcs(funcs)
 	articleTpl := template.New(articleTplPath).Funcs(funcs)
 	articleAddTpl := template.New(articleAddTplPath).Funcs(funcs)
@@ -58,6 +60,7 @@ func init() {
 
 	TemplateStore["commentTpl"] = template.Must(commentTpl.ParseFiles(commentTplPath))
 	TemplateStore["replyTpl"] = template.Must(replyTpl.ParseFiles(replyTplPath))
+	TemplateStore["errorTpl"] = template.Must(template.ParseFiles(errorTplPath))
 }
 
 func convertBsonToStr(bsonId bson.ObjectId) string {

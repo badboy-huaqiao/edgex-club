@@ -171,7 +171,7 @@
                 if (posted) {
                     $('#waitModal').modal('show');
                     window.setTimeout(function() {
-                        window.location.href = "/user/{{.CredUser.Name}}";
+                        window.location.href = "/user/{{.CredsUser.Name}}";
                     }, 1000);
                 } else {
                     $('#myModal div.modal-body').empty();
@@ -190,7 +190,7 @@
     }
 
     function backToHome() {
-        window.location.href = "/user/{{.CredUser.Name}}";
+        window.location.href = "/user/{{.CredsUser.Name}}";
     }
 </script>
 <script src="/public/vendors/markdown/editor/lib/marked.min.js"></script>

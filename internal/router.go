@@ -15,7 +15,7 @@ func InitRouter() http.Handler {
 
 	//加载首页
 	r.HandleFunc("/", handler.LoadIndexPage)
-
+	r.HandleFunc("/error", handler.ErrorHandler)
 	s := r.PathPrefix("/api/v1").Subrouter()
 
 	//+++++++++++++++++认证API++++++++++++++++++++++++++++++++++++++++++++++++

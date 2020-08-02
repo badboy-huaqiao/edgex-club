@@ -152,16 +152,16 @@
         article["type"] = $("#articleType").val().trim()
         article["content"] = md
         article["posted"] = true
-        article["userName"] = {{.CredUser.Name}}
+        article["userName"] = {{.CredsUser.Name}}
         $.ajax({
-            url: '/api/v1/auth/article/{{.CredUser.Id}}',
+            url: '/api/v1/auth/article/{{.CredsUser.Id}}',
             type: "POST",
             data: JSON.stringify(article),
             contentType: 'text/plain',
             success: function(data) {
                 $('#waitModal').modal('show');
                 window.setTimeout(function() {
-                    window.location.href = "/user/{{.CredUser.Name}}";
+                    window.location.href = "/user/{{.CredsUser.Name}}";
                 }, 1000);
             },
             statusCode: {

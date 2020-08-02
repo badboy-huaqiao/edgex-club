@@ -7,8 +7,6 @@ import (
 	"edgex-club/internal/core"
 	"edgex-club/internal/model"
 	repo "edgex-club/internal/repository"
-	"encoding/json"
-	"fmt"
 	"net/http"
 
 	mux "github.com/gorilla/mux"
@@ -28,24 +26,18 @@ func renderTemplate(w http.ResponseWriter, name string, template string, data in
 
 func LoadIndexPage(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	userInfo := r.Header.Get("inner-user")
-	var credUser model.Credentials
-	if userInfo != "" {
-		if err := json.Unmarshal([]byte(userInfo), &credUser); err != nil {
-			//todo
-		}
-	}
+	creds := genCredsUser(r)
 
 	articles, _ := repo.ArticleRepositotyClient().FetchAll()
 	hotAuthors, _ := repo.ArticleRepositotyClient().HotAuthor()
 	hotArticles, _ := repo.ArticleRepositotyClient().HotArticle()
 	data := struct {
-		CredUser    *model.Credentials
+		CredsUser   *model.Credentials
 		Articles    []model.Article
 		HotAuthors  []model.User
 		HotArticles []model.Article
 	}{
-		CredUser:    &credUser,
+		CredsUser:   creds,
 		Articles:    articles,
 		HotAuthors:  hotAuthors,
 		HotArticles: hotArticles,
@@ -59,9 +51,7 @@ func LoadArticlePage(w http.ResponseWriter, r *http.Request) {
 	userName := vars["userName"]
 	articleId := vars["articleId"]
 
-	var creds model.Credentials
-	userStr := r.Header.Get("inner-user")
-	json.Unmarshal([]byte(userStr), &creds)
+	creds := genCredsUser(r)
 
 	article, _ := repo.ArticleRepositotyClient().FindOne(userName, articleId)
 	user := repo.UserRepos.FindOneByName(userName)
@@ -75,7 +65,7 @@ func LoadArticlePage(w http.ResponseWriter, r *http.Request) {
 		replysMap[c.Id.Hex()] = replys
 	}
 	data := struct {
-		CredUser        *model.Credentials
+		CredsUser       *model.Credentials
 		UserName        string
 		AvatarUrl       string
 		ArticleId       string
@@ -88,7 +78,7 @@ func LoadArticlePage(w http.ResponseWriter, r *http.Request) {
 		ReplysMap       map[string][]model.Reply
 		HotArticles     []model.Article
 	}{
-		CredUser:        &creds,
+		CredsUser:       creds,
 		UserName:        userName,
 		AvatarUrl:       user.AvatarUrl,
 		ArticleId:       articleId,
@@ -112,36 +102,31 @@ func LoadArticleEditPage(w http.ResponseWriter, r *http.Request) {
 	var a model.Article
 	a, _ = repo.ArticleRepositotyClient().FindOne(userName, articleId)
 
-	var creds model.Credentials
-	userStr := r.Header.Get("inner-user")
-	json.Unmarshal([]byte(userStr), &creds)
+	creds := genCredsUser(r)
 
 	data := struct {
 		ArticleId    string
 		MD           string
 		ArticleTitle string
 		Type         string
-		CredUser     *model.Credentials
+		CredsUser    *model.Credentials
 	}{
 		ArticleId:    articleId,
 		MD:           a.Content,
 		ArticleTitle: a.Title,
 		Type:         a.Type,
-		CredUser:     &creds,
+		CredsUser:    creds,
 	}
 	renderTemplate(w, "article_edit", "base", data)
 }
 
 func LoadArticleAddPage(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	var creds model.Credentials
-	userStr := r.Header.Get("inner-user")
-	json.Unmarshal([]byte(userStr), &creds)
-	fmt.Printf("userStr======%s", userStr)
+	creds := genCredsUser(r)
 	data := struct {
-		CredUser *model.Credentials
+		CredsUser *model.Credentials
 	}{
-		CredUser: &creds,
+		CredsUser: creds,
 	}
 
 	renderTemplate(w, "article_add", "base", data)
@@ -151,12 +136,7 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	vars := mux.Vars(r)
 	userName := vars["userName"]
-
-	var creds model.Credentials
-	userStr := r.Header.Get("inner-user")
-	json.Unmarshal([]byte(userStr), &creds)
-
-	fmt.Printf("userStr===========%s\n", userStr)
+	creds := genCredsUser(r)
 
 	var articles []model.Article
 	var err error
@@ -166,7 +146,7 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 		filter = true
 	} else {
 		if msgs, err = repo.MessageRepositotyClient().FetchAllByUserName(creds.Name); err != nil {
-			http.Redirect(w, r, "/error", http.StatusPermanentRedirect)
+			http.Redirect(w, r, "/error", http.StatusTemporaryRedirect)
 			return
 		}
 		self = true
@@ -177,12 +157,12 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 	articleCount, _ := repo.ArticleRepositotyClient().UserArticleCount(userName)
 
 	if articles, err = repo.ArticleRepositotyClient().FindAllArticlesByUser(u.Id.Hex(), filter); err != nil {
-		http.Redirect(w, r, "/error", http.StatusPermanentRedirect)
+		http.Redirect(w, r, "/error", http.StatusTemporaryRedirect)
 		return
 	}
 
 	data := struct {
-		CredUser     *model.Credentials
+		CredsUser    *model.Credentials
 		Self         bool
 		UserId       string
 		UserName     string
@@ -191,7 +171,7 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 		Articles     []model.Article
 		Messages     []model.Message
 	}{
-		CredUser:     &creds,
+		CredsUser:    creds,
 		Self:         self,
 		UserId:       u.Id.Hex(),
 		UserName:     userName,

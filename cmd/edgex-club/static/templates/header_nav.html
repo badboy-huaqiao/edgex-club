@@ -15,13 +15,13 @@
 
         <div class="my-2 my-lg-0 ">
             <a class="navbar-text text-light" href="/article/add "><i class="fa fa-edit fa-fw "></i>发帖</a> 
-            {{if ne .CredUser.Name ""}}
-            <a class="header_user navbar-text" href="/user/{{.CredUser.Name}}">
-                <img src="{{.CredUser.AvatarUrl}}" alt="" class="rounded-circle" style="width:22px;height:22px; ">
+            {{if ne .CredsUser.Name ""}}
+            <a class="header_user navbar-text" href="/user/{{.CredsUser.Name}}">
+                <img src="{{.CredsUser.AvatarUrl}}" alt="" class="rounded-circle" style="width:22px;height:22px; ">
                 <span class="badge badge-pill badge-danger"></span>
             </a>
             {{else}}
-            <a class="header_login navbar-text text-light"><span>登录</span></a> 
+            <a class="header_login navbar-text text-light" href="/login.html"><span>登录</span></a> 
             {{end}}
         </div>
     </div>

@@ -45,10 +45,7 @@ func UserHome(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	vars := mux.Vars(r)
 	userName := vars["userName"]
-
-	var creds model.Credentials
-	userStr := r.Header.Get("inner-user")
-	json.Unmarshal([]byte(userStr), &creds)
+	creds := genCredsUser(r)
 
 	var articles []model.Article
 	var err error
