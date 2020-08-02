@@ -59,7 +59,7 @@
         <div class="card">
             <div class="card-head">
                 <div class="form-group">
-                    <input type="text" class="form-control" id="{{.ArticleId}}" value="{{.ArticleTitle}}">
+                    <input type="text" class="form-control" id="{{.Article.Id.Hex}}" value="{{.Article.Title}}">
                 </div>
             </div>
             <div class="new_article_content" id="test-editormd">
@@ -98,9 +98,9 @@
 <script type="text/javascript">
     var testEditor;
     $(document).ready(function() {
-        $("#articleType").find("option[value = '{{if .Type}}{{.Type}}{{else}}{{end}}']").attr("selected", "selected");
+        $("#articleType").find("option[value = '{{.Article.Type}}']").attr("selected", "selected");
         testEditor = editormd("test-editormd", {
-            markdown: '{{if .MD}}{{.MD}}{{else}}{{end}}',
+            markdown: '{{.Article.Content}}',
             // htmlDecode: "style,script,iframe",
             // taskList: true,
             // tex: true,
@@ -144,7 +144,7 @@
             $('#myModal').modal('show');
             return
         }
-        if ($("#{{.ArticleId}}").val().trim() == "") {
+        if ($("#{{.Article.Id.Hex}}").val().trim() == "") {
             $('#myModal div.modal-body').empty();
             $('#myModal div.modal-body').append("请填写文章标题！");
             $('#myModal').modal('show');
@@ -158,12 +158,12 @@
         }
 
         var article = {}
-        article["title"] = $("#{{.ArticleId}}").val().trim();
+        article["title"] = $("#{{.Article.Id.Hex}}").val().trim();
         article["type"] = $("#articleType").val().trim();
         article["content"] = md;
         article["posted"] = posted;
         $.ajax({
-            url: '/api/v1/auth/article/{{.ArticleId}}',
+            url: '/api/v1/auth/article/{{.Article.Id.Hex}}',
             type: "PUT",
             data: JSON.stringify(article),
             contentType: 'text/plain',
@@ -184,6 +184,9 @@
                     $('#myModal div.modal-body').empty();
                     $('#myModal div.modal-body').append("请文明发言！");
                     $('#myModal').modal('show');
+                }, 
+                308: function() {
+                    window.location.href = '/login.html?ran=' + Math.random();
                 }
             }
         });

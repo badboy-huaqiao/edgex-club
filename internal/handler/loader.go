@@ -7,42 +7,61 @@ import (
 	"edgex-club/internal/core"
 	"edgex-club/internal/model"
 	repo "edgex-club/internal/repository"
+	"fmt"
 	"net/http"
 
 	mux "github.com/gorilla/mux"
 )
 
-func renderTemplate(w http.ResponseWriter, name string, template string, data interface{}) {
+type userInfo struct {
+	Id        string
+	Name      string
+	AvatarUrl string
+}
+
+type pageDataPayload struct {
+	IsSelf          bool
+	CredsUser       *model.Credentials
+	UserMsgSum      int
+	UserArticlesSum int
+	Article         model.Article
+	Articles        []model.Article
+	HotAuthors      []model.User
+	HotArticles     []model.Article
+	Comments        []model.Comment
+	ReplysMap       map[string][]model.Reply
+	Messages        []model.Message
+	UserInof        userInfo
+}
+
+func renderTemplate(w http.ResponseWriter, name string, template string, data *pageDataPayload, creds *model.Credentials) {
 	t, ok := core.TemplateStore[name]
 	if !ok {
 		http.Error(w, "template resource not found", http.StatusInternalServerError)
 		return
 	}
+	if creds != nil {
+		msgSum, _ := repo.MessageRepositotyClient().MsgSumByUserName(creds.Name)
+		data.UserMsgSum = msgSum
+		data.CredsUser = creds
+	}
 	err := t.ExecuteTemplate(w, template, data)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Printf("exec render template error: %s\n", err.Error())
 	}
 }
 
 func LoadIndexPage(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	creds := genCredsUser(r)
-
 	articles, _ := repo.ArticleRepositotyClient().FetchAll()
 	hotAuthors, _ := repo.ArticleRepositotyClient().HotAuthor()
 	hotArticles, _ := repo.ArticleRepositotyClient().HotArticle()
-	data := struct {
-		CredsUser   *model.Credentials
-		Articles    []model.Article
-		HotAuthors  []model.User
-		HotArticles []model.Article
-	}{
-		CredsUser:   creds,
+	data := &pageDataPayload{
 		Articles:    articles,
 		HotAuthors:  hotAuthors,
 		HotArticles: hotArticles,
 	}
-	renderTemplate(w, "index", "base", data)
+	renderTemplate(w, "index", "base", data, genCredsUser(r))
 }
 
 func LoadArticlePage(w http.ResponseWriter, r *http.Request) {
@@ -51,10 +70,7 @@ func LoadArticlePage(w http.ResponseWriter, r *http.Request) {
 	userName := vars["userName"]
 	articleId := vars["articleId"]
 
-	creds := genCredsUser(r)
-
 	article, _ := repo.ArticleRepositotyClient().FindOne(userName, articleId)
-	user := repo.UserRepos.FindOneByName(userName)
 	articleCount, _ := repo.ArticleRepositotyClient().UserArticleCount(userName)
 	comments, _ := repo.CommentRepositotyClient().FindAllCommentByArticleId(articleId)
 
@@ -64,72 +80,30 @@ func LoadArticlePage(w http.ResponseWriter, r *http.Request) {
 		replys, _ := repo.ReplyRepositotyClient().FindAllReplyByCommentId(c.Id.Hex())
 		replysMap[c.Id.Hex()] = replys
 	}
-	data := struct {
-		CredsUser       *model.Credentials
-		UserName        string
-		AvatarUrl       string
-		ArticleId       string
-		ArticleTitle    string
-		ArticleCount    int
-		ArticleModified int64
-		ReadCount       int64
-		MD              string
-		Comments        []model.Comment
-		ReplysMap       map[string][]model.Reply
-		HotArticles     []model.Article
-	}{
-		CredsUser:       creds,
-		UserName:        userName,
-		AvatarUrl:       user.AvatarUrl,
-		ArticleId:       articleId,
-		ArticleTitle:    article.Title,
-		ArticleCount:    articleCount,
-		ArticleModified: article.Modified,
-		ReadCount:       article.ReadCount,
-		MD:              article.Content,
+	data := &pageDataPayload{
+		Article:         article,
+		HotArticles:     hotArticles,
 		Comments:        comments,
 		ReplysMap:       replysMap,
-		HotArticles:     hotArticles,
+		UserArticlesSum: articleCount,
 	}
-	renderTemplate(w, "article", "base", data)
+	renderTemplate(w, "article", "base", data, genCredsUser(r))
 }
 
 func LoadArticleEditPage(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	vars := mux.Vars(r)
 	articleId := vars["articleId"]
-	userName := vars["userName"]
-	var a model.Article
-	a, _ = repo.ArticleRepositotyClient().FindOne(userName, articleId)
-
-	creds := genCredsUser(r)
-
-	data := struct {
-		ArticleId    string
-		MD           string
-		ArticleTitle string
-		Type         string
-		CredsUser    *model.Credentials
-	}{
-		ArticleId:    articleId,
-		MD:           a.Content,
-		ArticleTitle: a.Title,
-		Type:         a.Type,
-		CredsUser:    creds,
-	}
-	renderTemplate(w, "article_edit", "base", data)
+	credsUser := genCredsUser(r)
+	a, _ := repo.ArticleRepositotyClient().FindOne(credsUser.Name, articleId)
+	data := &pageDataPayload{Article: a}
+	renderTemplate(w, "article_edit", "base", data, credsUser)
 }
 
 func LoadArticleAddPage(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	creds := genCredsUser(r)
-	data := struct {
-		CredsUser *model.Credentials
-	}{
-		CredsUser: creds,
-	}
-
-	renderTemplate(w, "article_add", "base", data)
+	data := &pageDataPayload{}
+	renderTemplate(w, "article_add", "base", data, genCredsUser(r))
 }
 
 func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
@@ -142,14 +116,15 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var filter, self bool
 	var msgs []model.Message
-	if creds.Name != userName {
-		filter = true
-	} else {
+
+	if creds != nil && creds.Name == userName {
+		self = true
 		if msgs, err = repo.MessageRepositotyClient().FetchAllByUserName(creds.Name); err != nil {
 			http.Redirect(w, r, "/error", http.StatusTemporaryRedirect)
 			return
 		}
-		self = true
+	} else {
+		filter = true
 	}
 
 	u := repo.UserRepos.FindOneByName(userName)
@@ -161,25 +136,17 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := struct {
-		CredsUser    *model.Credentials
-		Self         bool
-		UserId       string
-		UserName     string
-		AvatarUrl    string
-		ArticleCount int
-		Articles     []model.Article
-		Messages     []model.Message
-	}{
-		CredsUser:    creds,
-		Self:         self,
-		UserId:       u.Id.Hex(),
-		UserName:     userName,
-		AvatarUrl:    u.AvatarUrl,
-		ArticleCount: articleCount,
-		Articles:     articles,
-		Messages:     msgs,
+	data := &pageDataPayload{
+		UserArticlesSum: articleCount,
+		Articles:        articles,
+		Messages:        msgs,
+		IsSelf:          self,
+		UserInof: userInfo{
+			Id:        u.Id.Hex(),
+			Name:      userName,
+			AvatarUrl: u.AvatarUrl,
+		},
 	}
 
-	renderTemplate(w, "userhome", "base", data)
+	renderTemplate(w, "userhome", "base", data, creds)
 }

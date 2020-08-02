@@ -23,7 +23,10 @@ func InitRouter() http.Handler {
 	s.HandleFunc("/login", handler.Login).Methods("POST", "GET")
 	// s.HandleFunc("/register",handler.Register).Methods("POST")
 	s.HandleFunc("/loginbygithub", handler.LoginByGitHub).Methods("POST", "GET")
-	s.HandleFunc("/isvalid/{token}", handler.ValidToken).Methods("GET")
+
+	//======================加载编辑、发帖模板==================================
+	s.HandleFunc("/api/v1/article/add", handler.LoadArticleAddPage).Methods("GET")
+	s.HandleFunc("/api/v1/article/edit/{articleId}", handler.LoadArticleEditPage).Methods("GET")
 
 	//======================简易消息API========================================
 	//更新消息状态，已读、未读
@@ -63,7 +66,7 @@ func InitRouter() http.Handler {
 
 	s.HandleFunc("/ping", ping).Methods("GET")
 
-	//====================用户主页===============================================
+	//====================用户主页/文章===============================================
 	s1 := r.PathPrefix("").Subrouter()
 	//用户主页模板
 	s1.HandleFunc("/user/{userName}", handler.LoadUserHomePage).Methods("GET")
@@ -71,12 +74,7 @@ func InitRouter() http.Handler {
 
 	//阅读某个用户的文章，加载公共文章模板
 	s1.HandleFunc("/user/{userName}/article/{articleId}", handler.LoadArticlePage).Methods("GET")
-	// s1.HandleFunc("/user/{userName}/article/{articleId}", handler.FindOneArticle).Methods("GET")
 
-	//加载编辑、发帖模板
-	s1.HandleFunc("/article/add", handler.LoadArticleAddPage).Methods("GET")
-	s1.HandleFunc("/article/edit/{userName}/{articleId}", handler.LoadArticleEditPage).Methods("GET")
-	// s1.HandleFunc("/article/edit/{userName}/{articleId}", handler.LoadEditArticleTemplate).Methods("GET")
 	return r
 }
 

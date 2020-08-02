@@ -10,7 +10,6 @@ import (
 	repo "edgex-club/internal/repository"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -273,30 +272,6 @@ func FindAllArticlesByUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(ContentType, ContentTypeJSON)
 	w.Write(result)
-}
-
-func FindOneArticle(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	vars := mux.Vars(r)
-	userName := vars["userName"]
-	articleId := vars["articleId"]
-
-	article, _ := repo.ArticleRepositotyClient().FindOne(userName, articleId)
-	user := repo.UserRepos.FindOneByName(userName)
-	articleCount, _ := repo.ArticleRepositotyClient().UserArticleCount(userName)
-
-	t, _ := template.ParseFiles("static/articles/article_tpl.html")
-	data := TodoPageData{
-		UserName:        userName,
-		AvatarUrl:       user.AvatarUrl,
-		ArticleId:       articleId,
-		ArticleTitle:    article.Title,
-		ArticleCount:    articleCount,
-		ArticleModified: article.Modified,
-		ReadCount:       article.ReadCount,
-		MD:              article.Content,
-	}
-	t.Execute(w, data)
 }
 
 func SaveNewArticle(w http.ResponseWriter, r *http.Request) {

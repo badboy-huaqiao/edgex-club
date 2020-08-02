@@ -22,7 +22,7 @@ func (*defaultReplyRepositoty) FindAllReplyByCommentId(commentId string) (replys
 	ds := DS.DataStore()
 	defer ds.S.Close()
 	collection := ds.S.DB(EdgeXClubDB).C(ReplyTable)
-	if err = collection.Find(bson.M{"commentId": commentId}).Sort("created").All(&replys); err != nil {
+	if err = collection.Find(bson.M{"commentId": commentId}).Sort("-created").All(&replys); err != nil {
 		return nil, err
 	}
 	return replys, nil

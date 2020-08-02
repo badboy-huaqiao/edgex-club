@@ -5,7 +5,7 @@
 
 {{define "head"}}
 
-<title>{{.UserName}}的主页</title>
+<title>{{.UserInof.Name}}的主页</title>
 <link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_img.png" style="width:62px;height:62px;" />
 <link href="/public/vendors/markdown/editor/css/editormd.min.css" rel="stylesheet">
 <link href="/public/vendors/markdown/editor/css/editormd.preview.min.css" rel="stylesheet">
@@ -23,26 +23,25 @@
                 <div class="card-header">作者信息</div>
                 <div class="card-body">
                     <div class="media">
-                        <img src="{{.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="">
+                        <img src="{{.UserInof.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="">
                         <div class="media-body">
-                            <h5 class="card-title">{{.UserName}}</h5>
-                            <p class="card-text">文章&nbsp;&nbsp;{{.ArticleCount}}</p>
+                            <h5 class="card-title">{{.UserInof.Name}}</h5>
+                            <p class="card-text">文章&nbsp;&nbsp;{{.UserArticlesSum}}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-sm-9 col-md-9 col-lg-9">
-            {{ if .Self }}
+            {{ if .IsSelf }}
             <div class="card">
                 <div class="card-header">
                     消息
                 </div>
                 <div class="list-group list-group-flush">
                     {{range $key,$msg := .Messages}}
-                    <a href="/user/{{$msg.ArticleUserName}}/article/{{$msg.ArticleId}}" class="list-group-item list-group-item-action">
-                            {{$msg.Content}}
-
+                    <div  class="list-group-item list-group-item-action">
+                            <a href="#" onclick="updateMsgAndSkip({{$msg.ArticleUserName}},{{$msg.ArticleId}},{{$msg.Id}})">{{$msg.Content}}</a>
                             <span class="pull-right">
                                 {{if $msg.IsRead }}
                                 <span class="badge badge-pill badge-secondary">已读</span> 
@@ -52,7 +51,7 @@
                                 <span class="badge badge-pill badge-success">{{$msg.Created | fdate}}</span>
                             </span>
                             
-                    </a> {{end}}
+                    </div> {{end}}
                 </div>
             </div>
             {{ end }}
@@ -66,14 +65,14 @@
                             <div class="media-body">
                                 <h5 class="mt-0 mb-1"><a class="text-dark" href="/user/{{$article.UserName}}/article/{{$article.Id.Hex}}" target="_blank">{{$article.Title}}</a></h5>
                                 <span class="badge badge-success">{{$article.Type}}</span>&nbsp;&nbsp;<span class="badge badge-secondary">{{$article.Created | fdate}}</span>
-                                {{ if $.Self }}
+                                {{ if $.IsSelf }}
                                 <span class="pull-right">
                                     {{if $article.Approved }}
                                     <span class="badge badge-pill badge-success">已审核</span> 
                                     {{else}}
                                     <span class="badge badge-pill badge-danger">审核中</span> 
                                     {{end}}
-                                    <span class="badge badge-pill badge-info"><a class="text-light" href="/article/edit/{{$article.UserName}}/{{$article.Id | bsonIdStr}}" target="_blank">编辑</a></span>
+                                    <span class="badge badge-pill badge-info"><a class="text-light" href="/api/v1/auth/article/edit/{{$article.Id | bsonIdStr}}" target="_blank">编辑</a></span>
                                 </span>
                                 {{end}}
                             </div>
@@ -102,90 +101,17 @@
     </div>
 
     <script type="text/javascript">
-        var userId = "{{.UserId}}"
-        var userName = "{{.UserName}}"
 
-        function loadHotArticle() {
-            $.ajax({
-                url: '/api/v1/hotArticle',
-                type: 'GET',
-                success: function(data) {
-                    $("div.x-hot-article .panel-body").empty();
-                    var rowData = '<ul class="list-unstyled">';
-                    $.each(data, function(i, e) {
-                        var path = "/user/" + e.userName + "/article/" + e.id;
-                        rowData += '<li><a href="' + path + '" class="" target="_blank"><u>' + e.title + '</u></a></li>';
-                    });
-                    rowData += '</ul>';
-                    $("div.x-hot-article .panel-body").append(rowData)
-                },
-                error: function() {
-
-                }
-            });
-        }
-
-        function updateMessage(event) {
-            var msgId = $(event.currentTarget).attr("msgId");
-            var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
+        function updateMsgAndSkip(articleUserName,articleId,msgId) {
             $.ajax({
                 url: "/api/v1/auth/message/" + msgId,
                 type: "PUT",
                 success: function() {
-                    $.ajax({
-                        url: "/api/v1/auth/message/" + userInfo.name + "/count",
-                        type: "GET",
-                        success: function(data) {
-                            if (data == 0) {
-                                $("div.header_user span.badge").hide();
-                                return;
-                            } else if (data > 100) {
-                                $("div.header_user span.badge").text(data + "+");
-                            } else {
-                                $("div.header_user span.badge").text(data);
-                            }
-                            $("div.header_user span.badge").show();
-                        }
-                    });
+                    window.location.href = "/user/"+articleUserName+"/article/"+articleId
                 }
-            });
+            });  
         }
-
-        function loadUserMessage() {
-            if (!edgexClubMainModule.loginIsVaild) {
-                $("#message").hide();
-            }
-            if (edgexClubMainModule.loginIsVaild) {
-                var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
-                if (userInfo.id != userId) {
-                    $("#message").hide();
-                } else {
-                    $.ajax({
-                        url: "/api/v1/auth/message/" + userInfo.name,
-                        type: "GET",
-                        success: function(data) {
-
-                            if (data.length == 0) {
-                                $("#message").hide();
-                            }
-                            for (var i = 0; i < data.length; i++) {
-                                var d = data[i];
-                                var isRead = "";
-                                var statusColor = "";
-                                if (d.isRead) {
-                                    isRead = "已读";
-                                } else {
-                                    isRead = "未读";
-                                    statusColor = "#f0ad4e;"
-                                }
-                                var a = '<a msgId="' + d.id + '" target="_blank" onclick="updateMessage(event)" href="/user/' + d.articleUserName + '/article/' + d.articleId + '" class="list-group-item" ><span style="clear:both;display:inline-block;width:50%;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;">' + d.content + '</span> <span class="badge">' + edgexFmtDate(d.created) + '</span><span class="badge" style="color:' + statusColor + '">' + isRead + '</span></a>'
-                                $("#message div.panel-body").append(a)
-                            }
-                        }
-                    });
-                }
-            }
-        }
+    
     </script>
 
     {{end}}

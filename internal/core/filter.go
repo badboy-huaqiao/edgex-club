@@ -5,7 +5,6 @@ package core
 
 import (
 	"edgex-club/internal/authorization"
-	"edgex-club/internal/errors"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -38,7 +37,12 @@ func GeneralFilter(next http.Handler) http.Handler {
 		//检测认证API是否携带有效jwt token
 		if strings.HasPrefix(path, "/api/v1/auth") {
 			if !ok {
-				http.Error(w, errors.NewErrUnauthorize().Error(), http.StatusUnauthorized)
+				//ajax 请求
+				if r.Header.Get("x-requested-with") != "" {
+					http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+					return
+				}
+				http.Redirect(w, r, "/login.html", http.StatusPermanentRedirect)
 				return
 			}
 		}
@@ -46,7 +50,12 @@ func GeneralFilter(next http.Handler) http.Handler {
 			credsUser, err := json.Marshal(claims.Credentials)
 			if err != nil {
 				log.Println("转换creds失败！")
-				http.Error(w, "", http.StatusInternalServerError)
+				//ajax 请求
+				if r.Header.Get("x-requested-with") != "" {
+					http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+					return
+				}
+				http.Redirect(w, r, "/login.html", http.StatusPermanentRedirect)
 				return
 			}
 			//重写请求头，用于下游服务中使用，比如一些handler中需要用到用户信息

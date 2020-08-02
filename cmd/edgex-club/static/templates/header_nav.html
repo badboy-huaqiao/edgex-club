@@ -14,11 +14,11 @@
         </ul>
 
         <div class="my-2 my-lg-0 ">
-            <a class="navbar-text text-light" href="/article/add "><i class="fa fa-edit fa-fw "></i>发帖</a> 
-            {{if ne .CredsUser.Name ""}}
+            <a class="navbar-text text-light" href="/api/v1/auth/article/add "><i class="fa fa-edit fa-fw "></i>发帖</a> 
+            {{if .CredsUser}}
             <a class="header_user navbar-text" href="/user/{{.CredsUser.Name}}">
                 <img src="{{.CredsUser.AvatarUrl}}" alt="" class="rounded-circle" style="width:22px;height:22px; ">
-                <span class="badge badge-pill badge-danger"></span>
+                <span class="badge badge-pill badge-danger">{{.UserMsgSum}}</span>
             </a>
             {{else}}
             <a class="header_login navbar-text text-light" href="/login.html"><span>登录</span></a> 

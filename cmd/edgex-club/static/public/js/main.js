@@ -4,7 +4,6 @@
 $(document).ready(function() {
     $.ajaxSetup({
         cache: false, //prevent browser cache result to redirect  failed.
-        headers: { "edgex-club-token": window.localStorage.getItem("edgex-club-token") },
         statusCode: {
             302: function() {
                 window.location.href = '/login.html?ran=' + Math.random(); //prevent browser cache result to redirect  failed.
@@ -18,97 +17,6 @@ $(document).ready(function() {
             400: function() {
                 window.location.href = '/error.html?ran=' + Math.random();
             }
-
         }
     });
-    // edgexClubMainModule.loginIsVaild = edgexClubMainModule.checkLogin();
-    //edgexClubMainModule.loadArticleList();
-    $(".header_login").on("click", function() {
-        mainModuleBtnGroup.login();
-    });
-    $(".header_user").on("click", function() {
-        mainModuleBtnGroup.user();
-    });
-    $(".header_post").on("click", function() {
-        mainModuleBtnGroup.post();
-    });
-    // $("div.header_user").mouseover(function(){
-    //
-    //   $("div.user_hide_info").show()
-    // });
-    // $("div.header_user").mouseleave(function(){
-    //   $("div.user_hide_info").hide()
-    // });
-
-    // if (edgexClubMainModule.loginIsVaild) {
-    //     var userInfo = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
-    //     $.ajax({
-    //         url: "/api/v1/auth/message/" + userInfo.name + "/count",
-    //         type: "GET",
-    //         success: function(data) {
-    //             if (data == 0) {
-    //                 return;
-    //             } else if (data > 100) {
-    //                 $(".header_user span.badge").text(data + "+");
-    //             } else {
-    //                 $(".header_user span.badge").text(data);
-    //             }
-    //             $(".header_user span.badge").show();
-    //         }
-    //     });
-    // }
 });
-
-var edgexClubMainModule = {
-    loginIsVaild: false,
-    checkLogin: function() {
-        var token = window.localStorage.getItem("edgex-club-token");
-        var user = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
-        console.dir(user)
-        var isVaild = false;
-        if (token) {
-            $.ajax({
-                url: "/api/v1/isvalid/" + token,
-                type: "GET",
-                async: false,
-                success: function(data) {
-                    if (data == 1) {
-                        isVaild = true;
-                        $(".header_login").hide();
-                        $(".header_user").prop("href", "/user/" + user["name"])
-                        $(".header_user img").prop("src", user["avatarUrl"])
-                        $(".header_user").show();
-                    } else {
-                        isVaild = false;
-                    }
-                }
-            });
-            return isVaild;
-        } else {
-            $("div.header_user").hide();
-            return isVaild;
-        }
-    }
-}
-
-var mainModuleBtnGroup = {
-    login: function() {
-        window.location.href = "/login.html"
-    },
-    user: function() {
-        if (edgexClubMainModule.loginIsVaild) {
-            var user = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
-            window.location.href = "/user/" + user["name"];
-        } else {
-            window.location.href = "/login.html"
-        }
-    },
-    post: function() {
-        if (edgexClubMainModule.loginIsVaild) {
-            var user = JSON.parse(window.localStorage.getItem("edgex-club-userInfo"));
-            window.location.href = "/article/add";
-        } else {
-            window.location.href = "/login.html"
-        }
-    }
-}

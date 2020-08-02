@@ -43,12 +43,12 @@
                     <div class="card-header">作者信息</div>
                     <div class="card-body">
                         <div class="media">
-                            <a href="/user/{{.UserName}}">
-                                <img src="{{.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="">
+                            <a href="/user/{{.Article.UserName}}">
+                                <img src="{{.Article.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="">
                             </a>
                             <div class="media-body">
-                                <h5 class="card-title">{{.UserName}}</h5>
-                                <p class="card-text">文章&nbsp;&nbsp;{{.ArticleCount}}</p>
+                                <h5 class="card-title">{{.Article.UserName}}</h5>
+                                <p class="card-text">文章&nbsp;&nbsp;{{.UserArticlesSum}}</p>
                             </div>
                         </div>
                     </div>
@@ -56,11 +56,11 @@
             </div>
             <div class="col-sm-9 col-md-9 col-lg-9">
                 <div class="card">
-                    <div class="card-header">{{.ArticleTitle}}</div>
+                    <div class="card-header">{{.Article.Title}}</div>
                     <div class="card-body">
                         <div class="article_info" style="border-bottom:1px solid #e36209;padding:5px 0;margin-bottom:15px;color:gray;">
-                            <span id="articleModified">最后更新于：{{.ArticleModified | fdate}}</span>
-                            <span id="readCount" style="float:right;">阅读数：{{.ReadCount}}</span>
+                            <span id="articleModified">最后更新于：{{.Article.Modified | fdate}}</span>
+                            <span id="readCount" style="float:right;">阅读数：{{.Article.ReadCount}}</span>
                         </div>
                         <div id="markdown_data_show" style="padding:0;">
 
@@ -88,9 +88,9 @@
                                     <span class="badge badge-secondary pull-right" onclick="showReply({{$comment.Id.Hex}})">回复</span>
                                 </div>
                             </div>
-                            <div id="{{$comment.Id.Hex}}" style="display: none;margin-top:5px;">
+                            <div id="{{$comment.Id.Hex}}" style="display: none;margin-top:5px;" class="list-group-item list-group-item-action list-group-item-secondary">
                                 <textarea class="reply_context" style="outline:none;" placeholder="回复@：{{$comment.UserName}}"></textarea>
-                                <span class="badge badge-secondary pull-right" onclick="reply({{$comment.Id.Hex}},{{$comment.UserName}},{{$comment.Id.Hex}})">提交回复</span>
+                                <p class="badge badge-secondary pull-right" onclick="reply({{$comment.Id.Hex}},{{$comment.UserName}},{{$comment.Id.Hex}})">提交回复</p>
                             </div>
                             <!-- reply -->
                             <div class="list-group list-group-flush" id="{{$comment.Id.Hex}}-reply-list">
@@ -140,8 +140,6 @@
     <script src="/public/vendors/markdown/editor/lib/jquery.flowchart.min.js"></script>
     <script type="text/javascript" src="/public/vendors/markdown/editor/editormd.js"></script>
     <script type="text/javascript">
-        var articleId = "{{.ArticleId}}"
-        var userName = "{{.UserName}}"
 
         function postComment() {
             $(this).prop("disabled", true);
@@ -155,7 +153,7 @@
             }
 
             $.ajax({
-                url: "/api/v1/auth/comment/" + articleId,
+                url: "/api/v1/auth/comment/{{.Article.Id.Hex}}",
                 type: "POST",
                 data: JSON.stringify({
                     "content": comment_context_val
@@ -172,6 +170,9 @@
                         $('#myAlertModal div.modal-body').empty();
                         $('#myAlertModal div.modal-body').append("  请文明发言！");
                         $('#myAlertModal').modal('show');
+                    },
+                     308: function() {
+                        window.location.href = '/login.html?ran=' + Math.random();
                     }
                 }
             });
@@ -207,6 +208,9 @@
                         $('#myAlertModal div.modal-body').empty();
                         $('#myAlertModal div.modal-body').append("  请文明发言！");
                         $('#myAlertModal').modal('show');
+                    }, 
+                    308: function() {
+                        window.location.href = '/login.html?ran=' + Math.random();
                     }
                 }
             });
@@ -227,13 +231,13 @@
                     302: function() {
                         window.location.href = '/login.html?ran=' + Math.random(); //prevent browser cache result to redirect  failed.
                     },
-                    429: function() {
-                        //alert("当前操作过于频繁，请稍后再试！");
-                    },
                     401: function() {
                         window.location.href = '/login.html?ran=' + Math.random();
                     },
-                    400: function() {
+                    307: function() {
+                        window.location.href = '/login.html?ran=' + Math.random();
+                    },
+                    308: function() {
                         window.location.href = '/error.html?ran=' + Math.random();
                     }
 
@@ -242,7 +246,7 @@
             var converter = new showdown.Converter({
                 tables: true
             });
-            var markdown_html = converter.makeHtml("{{.MD}}");
+            var markdown_html = converter.makeHtml("{{.Article.Content}}");
             document.getElementById("markdown_data_show").innerHTML = markdown_html;
         });
     </script>

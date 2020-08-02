@@ -41,7 +41,6 @@
         bottom: 0;
     }
 </style>
-<script type="text/javascript" src="/public/js/util.js"></script>
 {{end}} {{define "body"}}
 <div class="center" id="index_main">
     <div class="container">
@@ -100,7 +99,7 @@
                     </div>
                     <div class="list-group list-group-flush">
                         {{range $key,$article := .HotArticles}}
-                        <a class="list-group-item list-group-item-action" href="/user/{{$article.UserName}}/article/{{$article.Id}}" target="_blank">{{$article.Title}}</a> {{end}}
+                        <a class="list-group-item list-group-item-action" href="/user/{{$article.UserName}}/article/{{$article.Id.Hex}}" target="_blank">{{$article.Title}}</a> {{end}}
                     </div>
                 </div>
 
