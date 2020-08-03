@@ -20,13 +20,13 @@ func InitRouter() http.Handler {
 
 	//+++++++++++++++++认证API++++++++++++++++++++++++++++++++++++++++++++++++
 
-	s.HandleFunc("/login", handler.Login).Methods("POST", "GET")
+	// s.HandleFunc("/login", handler.Login).Methods("POST", "GET")
 	// s.HandleFunc("/register",handler.Register).Methods("POST")
-	s.HandleFunc("/loginbygithub", handler.LoginByGitHub).Methods("POST", "GET")
+	s.HandleFunc("/loginbygithub", handler.LoginByGitHubCallback).Methods("POST", "GET")
 
 	//======================加载编辑、发帖模板==================================
-	s.HandleFunc("/api/v1/article/add", handler.LoadArticleAddPage).Methods("GET")
-	s.HandleFunc("/api/v1/article/edit/{articleId}", handler.LoadArticleEditPage).Methods("GET")
+	s.HandleFunc("/auth/article/add", handler.LoadArticleAddPage).Methods("GET")
+	s.HandleFunc("/auth/article/edit/{articleId}", handler.LoadArticleEditPage).Methods("GET")
 
 	//======================简易消息API========================================
 	//更新消息状态，已读、未读

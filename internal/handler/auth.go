@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"edgex-club/internal/authorization"
 	"edgex-club/internal/model"
-	"edgex-club/internal/repository"
+	repo "edgex-club/internal/repository"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -39,109 +39,57 @@ func genCredsUser(r *http.Request) *model.Credentials {
 	return &credsUser
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	m := make(map[string]string)
-	err := json.NewDecoder(r.Body).Decode(&m)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
-	}
-	name := m["name"]
-	pwd := m["password"]
-
-	u := model.User{Name: name, Password: pwd}
-	ok, err := repository.UserRepos.Exists(u)
-
-	if err != nil {
-		log.Println("User: " + name + " login failed : " + err.Error())
-		w.Write([]byte("log failed : " + err.Error()))
-		return
-	}
-
-	if ok {
-		var creds model.Credentials
-
-		log.Println("User: " + name + " login.")
-		creds.AvatarUrl = "https://avatars1.githubusercontent.com/u/42457890?v=4"
-		creds.Id = "5bc0081dcedad5121dccebff"
-		creds.Name = name
-
-		token, err := authorization.NewToken(creds)
-		if err != nil {
-			log.Println("生成token失败！")
-			w.WriteHeader(http.StatusBadRequest)
-		}
-
-		mm := make(map[string]interface{})
-		mm["token"] = token
-		mm["userInfo"] = creds
-		result, _ := json.Marshal(mm)
-		http.SetCookie(w, &http.Cookie{
-			Name:     "edgex-club-token",
-			Value:    token,
-			HttpOnly: true,
-			//Expires: expirationTime,
-		})
-		w.Header().Set("Content-Type", "application/json;charset=utf-8")
-		w.Write(result)
-	} else {
-		log.Println("User: " + name + " login failed : ")
-		w.Header().Set("Content-Type", "application/json;charset=utf-8")
-		w.Write([]byte("no user "))
-	}
-
-}
-
-func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
+func LoginByGitHubCallback(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	vars := r.URL.Query()
 	code := vars["code"][0]
 	userPrePage := vars["state"][0]
 
-	var githubtoken, userInfo string
+	var githubtoken string
 	var err error
+	var githubUserInfo GithubUserInfo
 	if githubtoken, err = getGithubTokenByCode(code); err != nil {
 		fmt.Printf("Access github error: %s\n", err.Error())
 		http.Redirect(w, r, "/error", http.StatusTemporaryRedirect)
 		return
 	}
-	if userInfo, err = getUserInfoByToken(githubtoken); err != nil {
+
+	if githubUserInfo, err = getUserInfoByToken(githubtoken); err != nil {
 		fmt.Printf("Access github error: %s\n", err.Error())
 		http.Redirect(w, r, "/error", http.StatusTemporaryRedirect)
 		return
 	}
 
-	var githubUserInfo = GithubUserInfo{}
-	jsonStr := bytes.NewReader([]byte(userInfo))
-	json.NewDecoder(jsonStr).Decode(&githubUserInfo)
-
-	userName := githubUserInfo.Login
-	userId := strconv.FormatInt(githubUserInfo.Id, 10)
-	avatarUrl := githubUserInfo.Avatar_url
-
-	u := model.User{Name: userName, GitHubId: userId, AvatarUrl: avatarUrl}
-	ok, _ := repository.UserRepos.ExistsByGitHub(u)
-	if !ok {
-		repository.UserRepos.Insert(u)
-		log.Println("user not exist, it's a new user,save to db.")
+	user := model.User{
+		Name:      githubUserInfo.Login,
+		GitHubId:  strconv.FormatInt(githubUserInfo.Id, 10),
+		AvatarUrl: githubUserInfo.Avatar_url,
 	}
-	u = repository.UserRepos.FindOneByName(u.Name)
+	u, err := repo.UserRepositoryClient().FetchOneByGitHub(user.GitHubId)
+	if err == nil {
+		repo.UserRepositoryClient().Add(user)
+		log.Println("user not exist, it's a new user,save to db.")
+	} else if u.AvatarUrl != user.AvatarUrl {
+		repo.UserRepositoryClient().Update(user)
+		log.Println("user existed, update user's avatar.")
+	}
+
+	u, _ = repo.UserRepositoryClient().FetchOneByName(user.Name)
 
 	creds := model.Credentials{
 		Name:      u.Name,
 		AvatarUrl: u.AvatarUrl,
 		Id:        u.Id.Hex(),
 	}
+
 	token, err := authorization.NewToken(creds)
 	if err != nil {
-		log.Println("生成token失败！")
+		log.Printf("生成token失败！err: %s\n", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("User login: %v\n", u)
+	log.Printf("User [id=%s,githubId=%s,avatarUrl=%s] login.\n", u.Id.Hex(), u.GitHubId, u.AvatarUrl)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "Authorization",
@@ -155,29 +103,25 @@ func LoginByGitHub(w http.ResponseWriter, r *http.Request) {
 
 func getGithubTokenByCode(code string) (string, error) {
 	url := "https://github.com/login/oauth/access_token"
-	param := make(map[string]string, 10)
-	param["client_id"] = "8dc598397ad0cc13bed8"
-	param["client_secret"] = "5d4ceb59b837b846cfd5ce7416af5dbc8a89b241"
-	param["code"] = code
-
-	bytesData, err := json.Marshal(param)
-	if err != nil {
-		log.Println("param json faild!")
-		return "", err
+	reqBody := map[string]string{
+		"client_id":     "8dc598397ad0cc13bed8",
+		"client_secret": "5d4ceb59b837b846cfd5ce7416af5dbc8a89b241",
+		"code":          code,
 	}
-	jsonStr := bytes.NewReader(bytesData)
-	request, _ := http.NewRequest("POST", url, jsonStr)
+
+	body, _ := json.Marshal(reqBody)
+	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
 	request.Header.Set(ContentType, ContentTypeJSON)
 	client := &http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(request)
 	if err != nil {
-		log.Println("request github to get code faild!")
+		log.Printf("request github to get code faild: %s\n", err.Error())
 		return "", err
 	}
 	defer response.Body.Close()
 	respBytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		log.Println("respBytes  faild!")
+		log.Printf("read github response body faild: %s\n", err.Error())
 		return "", err
 	}
 
@@ -190,20 +134,22 @@ func getGithubTokenByCode(code string) (string, error) {
 	return token, nil
 }
 
-func getUserInfoByToken(token string) (string, error) {
+func getUserInfoByToken(token string) (GithubUserInfo, error) {
 	url := "https://api.github.com/user?access_token=" + token + "&scope=user"
 	req, _ := http.NewRequest("GET", url, nil)
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
+	var githubUserInfo GithubUserInfo
 	if err != nil {
-		log.Printf("Retrieve User Infor from github failed: %s", err.Error())
-		return "", err
+		log.Printf("Retrieve github User Infor failed: %s", err.Error())
+		return githubUserInfo, err
 	}
 	defer resp.Body.Close()
-	userInfoData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Printf("Can't read response body: %s", err.Error())
-		return "", err
+
+	if err := json.NewDecoder(resp.Body).Decode(&githubUserInfo); err != nil {
+		log.Printf("Can't read  github response body: %s", err.Error())
+		return githubUserInfo, err
 	}
-	return string(userInfoData), nil
+
+	return githubUserInfo, nil
 }

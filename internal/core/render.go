@@ -23,7 +23,10 @@ var TemplateStore map[string]*template.Template
 var funcs = template.FuncMap{
 	"fdate":     formatDate,
 	"bsonIdStr": convertBsonToStr,
+	"unescaped": unescaped,
 }
+
+func unescaped(x string) interface{} { return template.HTML(x) }
 
 func init() {
 	if TemplateStore == nil {

@@ -8,9 +8,6 @@
 <link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_img.png" style="width:62px;height:62px;" />
 <link href="/public/vendors/markdown/editor/css/editormd.min.css" rel="stylesheet">
 <link href="/public/vendors/markdown/editor/css/editormd.preview.min.css" rel="stylesheet">
-
-<script type="text/javascript" src="/public/vendors/showdown/dist/showdown.min.js.map"></script>
-<script type="text/javascript" src="/public/vendors/showdown/dist/showdown.min.js"></script>
 <style media="screen">
     span.badge.pull-right:hover {
         cursor: pointer;
@@ -62,15 +59,15 @@
                             <span id="articleModified">最后更新于：{{.Article.Modified | fdate}}</span>
                             <span id="readCount" style="float:right;">阅读数：{{.Article.ReadCount}}</span>
                         </div>
-                        <div id="markdown_data_show" style="padding:0;">
-
+                        <div id="markdown_data_view" style="padding:0;">
+                            <textarea style="display:none;" name="test-editormd-markdown-doc"></textarea>      
                         </div>
                     </div>
                 </div>
 
                 <div class="card" style="margin-top:10px;">
                     <textarea class="form-control" id="comment_context" rows="3" style="outline:none;" placeholder="请输入..."></textarea>
-                    <button type="button" class="btn btn-info btn-sm pull-right" onclick="postComment()">发表评论</button>
+                    <button type="button" class="btn btn-info btn-sm pull-right" onclick="postComment(event)">发表评论</button>
                 </div>
 
                 <div class="card" style="margin-top:10px;">
@@ -138,20 +135,19 @@
     <script src="/public/vendors/markdown/editor/lib/sequence-diagram.min.js"></script>
     <script src="/public/vendors/markdown/editor/lib/flowchart.min.js"></script>
     <script src="/public/vendors/markdown/editor/lib/jquery.flowchart.min.js"></script>
-    <script type="text/javascript" src="/public/vendors/markdown/editor/editormd.js"></script>
+    <script type="text/javascript" src="/public/vendors/markdown/editor/editormd.min.js"></script>
     <script type="text/javascript">
 
-        function postComment() {
-            $(this).prop("disabled", true);
+        function postComment(event) {
             var comment_context_val = $("#comment_context").val().trim();
-
             if (comment_context_val.length == 0) {
                 $('#myAlertModal div.modal-body').empty();
                 $('#myAlertModal div.modal-body').append("评论内容不能为空 ！");
                 $('#myAlertModal').modal('show');
                 return;
             }
-
+            var target = $(event.currentTarget)
+            target.prop("disabled", true);
             $.ajax({
                 url: "/api/v1/auth/comment/{{.Article.Id.Hex}}",
                 type: "POST",
@@ -164,12 +160,14 @@
                     $('#myAlertModal').modal('show');
                     $("#comment_context").val("");
                     $(".all-comment-main").prepend(data)
+                    target.prop("disabled", false);
                 },
                 statusCode: {
                     3001: function() {
                         $('#myAlertModal div.modal-body').empty();
                         $('#myAlertModal div.modal-body').append("  请文明发言！");
                         $('#myAlertModal').modal('show');
+                        target.prop("disabled", false);
                     },
                      308: function() {
                         window.location.href = '/login.html?ran=' + Math.random();
@@ -181,14 +179,14 @@
 
         function reply(commentId, toUser, itemId) {
             var reply_context_val = $("#" + itemId).children("textarea").val().trim()
-
             if (reply_context_val.length == 0) {
                 $('#myAlertModal div.modal-body').empty();
                 $('#myAlertModal div.modal-body').append("回复内容不能为空 ！");
                 $('#myAlertModal').modal('show');
                 return;
             }
-
+            var target = $(this.event.currentTarget)
+            target.css("pointer-events", "none");
             $.ajax({
                 url: "/api/v1/auth/reply/" + commentId + "/" + toUser,
                 type: "POST",
@@ -202,12 +200,14 @@
                     hideReply(itemId)
                     $("#" + itemId).children("textarea").val("")
                     $("#" + commentId + "-reply-list").prepend(data)
+                    target.css("pointer-events", "auto");
                 },
                 statusCode: {
                     3001: function() {
                         $('#myAlertModal div.modal-body').empty();
                         $('#myAlertModal div.modal-body').append("  请文明发言！");
                         $('#myAlertModal').modal('show');
+                        target.css("pointer-events", "auto");
                     }, 
                     308: function() {
                         window.location.href = '/login.html?ran=' + Math.random();
@@ -243,11 +243,15 @@
 
                 }
             });
-            var converter = new showdown.Converter({
-                tables: true
-            });
-            var markdown_html = converter.makeHtml("{{.Article.Content}}");
-            document.getElementById("markdown_data_show").innerHTML = markdown_html;
+            editormd.markdownToHTML("markdown_data_view", {
+                        markdown        : {{.Article.Content}} ,
+                        htmlDecode      : "style,script,iframe", 
+                        emoji           : true,
+                        taskList        : true,
+                        tex             : true,  
+                        flowChart       : true,  
+                        sequenceDiagram : true,  
+                    });
         });
     </script>
 

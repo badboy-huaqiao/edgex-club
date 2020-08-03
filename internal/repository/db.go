@@ -17,6 +17,7 @@ const (
 	MsgTable     = "message"
 	CommentTable = "comment"
 	ReplyTable   = "reply"
+	UserTable    = "user"
 )
 
 type DataStore struct {
@@ -29,7 +30,7 @@ func (ds *DataStore) DataStore() *DataStore {
 	return &DataStore{ds.S.Copy()}
 }
 
-func DBConnect() bool {
+func DBConnect() error {
 	mongoDBDialInfo := &mgo.DialInfo{
 		Addrs:    []string{fmt.Sprintf("%s:%d", config.Config.Database.Host, config.Config.Database.Port)},
 		Timeout:  time.Duration(5000) * time.Millisecond,
@@ -39,9 +40,9 @@ func DBConnect() bool {
 	}
 	s, err := mgo.DialWithInfo(mongoDBDialInfo)
 	if err != nil {
-		return false
+		return err
 	}
 	s.SetSocketTimeout(time.Duration(5000) * time.Millisecond)
 	DS.S = s
-	return true
+	return nil
 }

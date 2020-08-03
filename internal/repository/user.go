@@ -11,86 +11,63 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type UserRepository struct {
+type UserRepository interface {
+	Add(u model.User) (id string, err error)
+	Update(u model.User) error
+	FetchOneByGitHub(githubId string) (u model.User, err error)
+	FetchOneByName(name string) (u model.User, err error)
 }
 
-var UserRepos *UserRepository = &UserRepository{}
-
-func (ur *UserRepository) ExistsByGitHub(u model.User) (bool, error) {
-	ds := DS.DataStore()
-	defer ds.S.Close()
-
-	coll := ds.S.DB("edgex-club").C("user")
-	count, err := coll.Find(bson.M{"name": u.Name, "gitHubId": u.GitHubId}).Count()
-	if err != nil {
-		return false, err
-	}
-	return count > 0, nil
+func UserRepositoryClient() UserRepository {
+	return &defaultUserRepository{}
 }
 
-func (ur *UserRepository) Exists(u model.User) (bool, error) {
-	ds := DS.DataStore()
-	defer ds.S.Close()
-
-	coll := ds.S.DB("edgex-club").C("user")
-	count, err := coll.Find(bson.M{"name": u.Name, "password": u.Password}).Count()
-	if err != nil {
-		return false, err
-	}
-	return count > 0, nil
+type defaultUserRepository struct {
 }
 
-func (ur *UserRepository) FindOneByName(name string) model.User {
+func (*defaultUserRepository) Add(u model.User) (id string, err error) {
 	ds := DS.DataStore()
 	defer ds.S.Close()
-	var u model.User
-	coll := ds.S.DB("edgex-club").C("user")
-	coll.Find(bson.M{"name": name}).One(&u)
-
-	return u
-}
-
-func (ur *UserRepository) Insert(u model.User) (string, error) {
-	ds := DS.DataStore()
-	defer ds.S.Close()
-
-	coll := ds.S.DB("edgex-club").C("user")
+	col := ds.S.DB(EdgeXClubDB).C(UserTable)
 	timestap := time.Now().UnixNano() / 1000000
 	u.Created = timestap
 	u.Id = bson.NewObjectId()
-	err := coll.Insert(u)
-	if err != nil {
-		log.Println("Insert user failed !")
+	if err = col.Insert(u); err != nil {
+		log.Printf("Insert user failed: %s", err.Error())
 		return "", err
 	}
-
 	return u.Id.Hex(), nil
 }
 
-func (ur *UserRepository) Update(user model.User) error {
+func (*defaultUserRepository) Update(u model.User) error {
 	ds := DS.DataStore()
 	defer ds.S.Close()
-
-	coll := ds.S.DB("edgex-club").C("user")
-	err := coll.UpdateId(user.Id, &user)
-
-	if err != nil {
-		log.Println("Update user failed !")
+	ts := time.Now().UnixNano() / 1000000
+	col := ds.S.DB(EdgeXClubDB).C(UserTable)
+	if err := col.UpdateId(u.Id, bson.M{"$set": bson.M{"avatarUrl": u.AvatarUrl, "Modified": ts}}); err != nil {
+		log.Printf("Update user failed: %s\n", err.Error())
 		return err
 	}
-
 	return nil
 }
 
-func (ur *UserRepository) Delete(id string) error {
+func (*defaultUserRepository) FetchOneByGitHub(gitHubId string) (u model.User, err error) {
 	ds := DS.DataStore()
 	defer ds.S.Close()
-
-	coll := ds.S.DB("edgex-club").C("user")
-	err := coll.Remove(bson.M{"_id": bson.ObjectIdHex(id)})
-	if err != nil {
-		log.Println("Delete user failed!" + err.Error())
-		return err
+	col := ds.S.DB(EdgeXClubDB).C(UserTable)
+	if err = col.Find(bson.M{"gitHubId": gitHubId}).One(&u); err != nil {
+		return u, err
 	}
-	return nil
+	return u, nil
+}
+
+func (*defaultUserRepository) FetchOneByName(name string) (u model.User, err error) {
+	ds := DS.DataStore()
+	defer ds.S.Close()
+	col := ds.S.DB(EdgeXClubDB).C(UserTable)
+
+	if err = col.Find(bson.M{"name": name}).One(&u); err != nil {
+		return u, err
+	}
+	return u, nil
 }

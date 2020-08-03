@@ -62,7 +62,7 @@
                     <input type="text" class="form-control" id="{{.Article.Id.Hex}}" value="{{.Article.Title}}">
                 </div>
             </div>
-            <div class="new_article_content" id="test-editormd">
+            <div class="new_article_content" id="md-editormd">
                 <textarea style="display:none;">### Hello EdgeX Foundry !</textarea>
             </div>
         </div>
@@ -96,16 +96,16 @@
 </div>
 
 <script type="text/javascript">
-    var testEditor;
+    var mdEditor;
     $(document).ready(function() {
         $("#articleType").find("option[value = '{{.Article.Type}}']").attr("selected", "selected");
-        testEditor = editormd("test-editormd", {
+        mdEditor = editormd("md-editormd", {
             markdown: '{{.Article.Content}}',
-            // htmlDecode: "style,script,iframe",
-            // taskList: true,
-            // tex: true,
-            // flowChart: true,
-            // sequenceDiagram: true,
+            htmlDecode: "style,script,iframe",
+            taskList: true,
+            tex: true,
+            flowChart: true,
+            sequenceDiagram: true,
             width: "100%",
             height: 700,
             syncScrolling: "single",
@@ -127,23 +127,14 @@
     });
 
     function pushArticle() {
-        articleCommit(true);
+        articleCommit(true, $(this.event.currentTarget));
     }
 
     function saveArticle() {
-        articleCommit(false);
+        articleCommit(false, $(this.event.currentTarget));
     }
 
-    function articleCommit(posted) {
-        $(this).prop("disabled", true);
-
-        var md = testEditor.getMarkdown();
-        if (md.trim().length == 0) {
-            $('#myModal div.modal-body').empty();
-            $('#myModal div.modal-body').append("请填写文章内容！");
-            $('#myModal').modal('show');
-            return
-        }
+    function articleCommit(posted, target) {
         if ($("#{{.Article.Id.Hex}}").val().trim() == "") {
             $('#myModal div.modal-body').empty();
             $('#myModal div.modal-body').append("请填写文章标题！");
@@ -156,12 +147,20 @@
             $('#myModal').modal('show');
             return;
         }
-
+        var md = mdEditor.getMarkdown();
+        if (md.trim().length == 0) {
+            $('#myModal div.modal-body').empty();
+            $('#myModal div.modal-body').append("请填写文章内容！");
+            $('#myModal').modal('show');
+            return
+        }
+        target.prop("disabled", true);
         var article = {}
         article["title"] = $("#{{.Article.Id.Hex}}").val().trim();
         article["type"] = $("#articleType").val().trim();
         article["content"] = md;
         article["posted"] = posted;
+
         $.ajax({
             url: '/api/v1/auth/article/{{.Article.Id.Hex}}',
             type: "PUT",
@@ -177,6 +176,7 @@
                     $('#myModal div.modal-body').empty();
                     $('#myModal div.modal-body').append("保存成功！");
                     $('#myModal').modal('show');
+                    target.prop("disabled", false);
                 }
             },
             statusCode: {
@@ -184,7 +184,7 @@
                     $('#myModal div.modal-body').empty();
                     $('#myModal div.modal-body').append("请文明发言！");
                     $('#myModal').modal('show');
-                }, 
+                },
                 308: function() {
                     window.location.href = '/login.html?ran=' + Math.random();
                 }
@@ -203,5 +203,5 @@
 <script src="/public/vendors/markdown/editor/lib/sequence-diagram.min.js"></script>
 <script src="/public/vendors/markdown/editor/lib/flowchart.min.js"></script>
 <script src="/public/vendors/markdown/editor/lib/jquery.flowchart.min.js"></script>
-<script type="text/javascript" src="/public/vendors/markdown/editor/editormd.js"></script>
+<script type="text/javascript" src="/public/vendors/markdown/editor/editormd.min.js"></script>
 {{end}}

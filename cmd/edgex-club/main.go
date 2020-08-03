@@ -29,12 +29,10 @@ func main() {
 
 	r := internal.InitRouter()
 
-	b := repository.DBConnect()
-	if b {
-		log.Println("connect to db success!")
-	} else {
-		log.Println("failed connect to db!")
+	if err = repository.DBConnect(); err != nil {
+		log.Fatalf("connect to db error: %s", err.Error())
 	}
+	log.Println("Success connect to db!")
 
 	authorization.InitAuth()
 
@@ -44,16 +42,10 @@ func main() {
 
 	if *isProd {
 		go func() {
-			// cer, err := tls.LoadX509KeyPair("./env/edgex-club-nginx.crt", "./env/edgex-club-nginx.key")
-			// if err != nil {
-			// 	log.Println(err)
-			// 	return
-			// }
-			// tlsConfig := &tls.Config{Certificates: []tls.Certificate{cer}}
+
 			server := &http.Server{
-				Handler: core.GeneralFilter(core.Limit(r)),
-				Addr:    ":443",
-				//TLSConfig:    tlsConfig,
+				Handler:      core.GeneralFilter(core.Limit(r)),
+				Addr:         ":443",
 				WriteTimeout: 15 * time.Second,
 				ReadTimeout:  15 * time.Second,
 			}

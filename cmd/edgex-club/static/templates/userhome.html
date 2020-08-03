@@ -64,7 +64,9 @@
                             <a href="/user/{{$article.UserName}}"><img src="{{$article.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="..."></a>
                             <div class="media-body">
                                 <h5 class="mt-0 mb-1"><a class="text-dark" href="/user/{{$article.UserName}}/article/{{$article.Id.Hex}}" target="_blank">{{$article.Title}}</a></h5>
-                                <span class="badge badge-success">{{$article.Type}}</span>&nbsp;&nbsp;<span class="badge badge-secondary">{{$article.Created | fdate}}</span>
+                                <span class="badge badge-success">{{$article.Type}}</span>&nbsp;&nbsp;
+                                <span class="badge badge-secondary">创建{{$article.Created | fdate}}</span>&nbsp;&nbsp;
+                                <span class="badge badge-info">最后更新{{$article.Created | fdate}}
                                 {{ if $.IsSelf }}
                                 <span class="pull-right">
                                     {{if $article.Approved }}
@@ -83,26 +85,27 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">提示</h4>
+<div class="modal fade" id="waitModal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="">
+                    <div class="spinner-grow spinner-grow-sm text-warning " role="status" aria-hidden="true"></div>
+                    <div class="spinner-grow spinner-grow-sm text-success"  role="status" aria-hidden="true"></div>
+                    <div class="spinner-grow spinner-grow-sm text-danger"  role="status" aria-hidden="true"></div>
+                    加载资源中，请稍等...
                 </div>
-                <div class="modal-body">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    <button type="button" onclick="deleteArticle()" class="btn btn-primary">确定</button>
-                </div>
+
             </div>
         </div>
     </div>
+</div>
 
     <script type="text/javascript">
 
         function updateMsgAndSkip(articleUserName,articleId,msgId) {
+            $(this.event.currentTarget).css("pointer-events", "none")
+            $('#waitModal').modal('show');
             $.ajax({
                 url: "/api/v1/auth/message/" + msgId,
                 type: "PUT",

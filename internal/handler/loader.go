@@ -127,7 +127,7 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 		filter = true
 	}
 
-	u := repo.UserRepos.FindOneByName(userName)
+	u, _ := repo.UserRepositoryClient().FetchOneByName(userName)
 	//TODO: 数量应该按照是否认证后显示已审核的数量
 	articleCount, _ := repo.ArticleRepositotyClient().UserArticleCount(userName)
 

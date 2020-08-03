@@ -9,8 +9,6 @@
 <link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_img.png" style="width:62px;height:62px;" />
 <link href="/public/vendors/markdown/editor/css/editormd.min.css" rel="stylesheet">
 <link href="/public/vendors/markdown/editor/css/editormd.preview.min.css" rel="stylesheet">
-<script type="text/javascript" src="/public/vendors/showdown/dist/showdown.min.js.map"></script>
-<script type="text/javascript" src="/public/vendors/showdown/dist/showdown.min.js"></script>
 <style media="screen">
     * {
         -webkit-box-sizing: border-box;
@@ -50,7 +48,7 @@
             </li>
 
             <li class="nav-item">
-                &nbsp;&nbsp;<button type="button" class="btn btn-success" name="button" onclick="pushArticle()">发布</button>
+                &nbsp;&nbsp;<button type="button" class="btn btn-success" name="button" onclick="pushArticle(event)">发布</button>
             </li>
         </ul>
 
@@ -60,7 +58,7 @@
                     <input type="text" class="form-control" id="new_article_title" placeholder="文章标题">
                 </div>
             </div>
-            <div class="new_article_content" id="test-editormd">
+            <div class="new_article_content" id="md-editormd">
                 <textarea style="display:none;">### Hello EdgeX Foundry !</textarea>
             </div>
         </div>
@@ -92,25 +90,30 @@
         </div>
     </div>
 </div>
-
+<script src="/public/vendors/markdown/editor/lib/marked.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/prettify.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/raphael.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/underscore.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/sequence-diagram.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/flowchart.min.js"></script>
+<script src="/public/vendors/markdown/editor/lib/jquery.flowchart.min.js"></script>
+<script type="text/javascript" src="/public/vendors/markdown/editor/editormd.min.js"></script>
 <script type="text/javascript">
-    var testEditor;
+    var mdEditor;
     $(document).ready(function() {
-        testEditor = editormd("test-editormd", {
+        mdEditor = editormd("md-editormd", {
             markdown: '',
-            // htmlDecode: "style,script,iframe",
-            // taskList: true,
-            // tex: true,
-            // flowChart: true,
-            // sequenceDiagram: true,
+            htmlDecode: "style,script,iframe",
+            taskList: true,
+            tex: true,
+            flowChart: true,
+            sequenceDiagram: true,
             width: "100%",
             height: 700,
             syncScrolling: "single",
             saveHTMLToTextarea: true,
             path: "/public/vendors/markdown/editor/lib/",
             toolbarIcons: function() {
-                // Or return editormd.toolbarModes[name]; // full, simple, mini
-                // Using "||" set icons align right.
                 return ["undo", "redo", "|",
                     "bold", "del", "italic", "quote", "ucwords", "uppercase", "lowercase", "|",
                     "h1", "h2", "h3", "h4", "h5", "|",
@@ -123,17 +126,7 @@
         });
     });
 
-    function pushArticle() {
-        $(this).prop("disabled", true);
-        var md = testEditor.getMarkdown();
-        if (md.trim().length == 0) {
-            $('#myModal div.modal-body').empty();
-            $('#myModal div.modal-body').append("请填写文章内容！");
-            $('#myModal').modal('show');
-            return 
-        }   
-       
-
+    function pushArticle(event) {
         if ($("#new_article_title").val().trim() == "") {
             $('#myModal div.modal-body').empty();
             $('#myModal div.modal-body').append("请填写文章标题！");
@@ -146,13 +139,22 @@
             $('#myModal').modal('show');
             return;
         }
-
+        var md = mdEditor.getMarkdown();
+        if (md.trim().length == 0) {
+            $('#myModal div.modal-body').empty();
+            $('#myModal div.modal-body').append("请填写文章内容！");
+            $('#myModal').modal('show');
+            return 
+        }   
         var article = {}
         article["title"] = $("#new_article_title").val().trim()
         article["type"] = $("#articleType").val().trim()
         article["content"] = md
         article["posted"] = true
         article["userName"] = {{.CredsUser.Name}}
+
+        $(event.currentTarget).prop("disabled", true);
+
         $.ajax({
             url: '/api/v1/auth/article/{{.CredsUser.Id}}',
             type: "POST",
@@ -169,6 +171,7 @@
                     $('#myModal div.modal-body').empty();
                     $('#myModal div.modal-body').append("请文明发言！");
                     $('#myModal').modal('show');
+                    $(event.currentTarget).prop("disabled", false);
                 },
                 308: function() {
                     window.location.href = '/login.html?ran=' + Math.random();
@@ -177,12 +180,4 @@
         });
     }
 </script>
-<script src="/public/vendors/markdown/editor/lib/marked.min.js"></script>
-<script src="/public/vendors/markdown/editor/lib/prettify.min.js"></script>
-<script src="/public/vendors/markdown/editor/lib/raphael.min.js"></script>
-<script src="/public/vendors/markdown/editor/lib/underscore.min.js"></script>
-<script src="/public/vendors/markdown/editor/lib/sequence-diagram.min.js"></script>
-<script src="/public/vendors/markdown/editor/lib/flowchart.min.js"></script>
-<script src="/public/vendors/markdown/editor/lib/jquery.flowchart.min.js"></script>
-<script type="text/javascript" src="/public/vendors/markdown/editor/editormd.js"></script>
 {{end}}

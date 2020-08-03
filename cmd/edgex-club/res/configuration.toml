@@ -1,20 +1,20 @@
 [Service]
 Host = "localhost"
-Port = 8080
-Labels = ["edgex club"]
-OpenMsg = "edgex club server started"
-StaticResourcePath = "./static"
 JWTPrivKey = "res/rsa/app.rsa"
 JWTPubKey = "res/rsa/app.rsa.pub"
+Labels = ["edgex club"]
+OpenMsg = "edgex club server started"
+Port = 8080
+StaticResourcePath = "./static"
 
 [Database]
-Host = "39.98.39.186"
 DatabaseName = "edgex-club"
+Host = "39.98.39.186"
+Password = ""
 Port = 8080
 Username = ""
-Password = ""
 
 [Certificate]
 CertPath = "res/tls/"
-Crt    = "res/tls/edgex-club-nginx.crt"
+Crt = "res/tls/edgex-club-nginx.crt"
 Key = "res/tls/edgex-club-nginx.key"
