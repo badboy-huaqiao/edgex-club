@@ -105,7 +105,7 @@ func Limit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//log.Println("limit=====")
 		v := getVisitor(r.RemoteAddr)
-		log.Println("user [ " + r.RemoteAddr + " ] access.")
+		// log.Println("user [ " + r.RemoteAddr + " ] access.")
 
 		// log.Println("user [ " + getRealIP(r) + " ] access.")
 		if !v.Limiter.Allow() {

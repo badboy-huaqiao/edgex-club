@@ -244,8 +244,8 @@
                 }
             });
             editormd.markdownToHTML("markdown_data_view", {
-                        markdown        : {{.Article.Content}} ,
-                        htmlDecode      : "style,script,iframe", 
+                        markdown        : {{.Article.Content | unescaped}} ,
+                        htmlDecode      : "style,script", 
                         emoji           : true,
                         taskList        : true,
                         tex             : true,  
