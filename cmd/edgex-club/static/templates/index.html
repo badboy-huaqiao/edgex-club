@@ -67,7 +67,7 @@
                     <div class="card-header">
                         <i class="fa fa-yelp fa-fw" style="color:#942c49;"></i>&nbsp;最新动态
                     </div>
-                    <div class="list-group list-group-flush">
+                    <div class="list-group list-group-flush index-new-articles">
                         {{range $key,$article := .Articles}}
                         <div class="list-group-item list-group-item-action">
                             <div class="media">
@@ -80,6 +80,19 @@
                         </div>
                         {{end}}
                     </div>
+                   
+                    <div class="card">
+                        <button type="button" class="btn btn-info btn-sm pull-right" onclick="loadMore()">
+                            <span class="more">更多...</span>
+                            <span class="loading" style="display:none;">
+                                <span class="spinner-grow spinner-grow-sm text-warning" role="status" aria-hidden="true"></span>
+                                <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                                <span class="spinner-grow spinner-grow-sm text-light" role="status" aria-hidden="true"></span>
+                                加载中...
+                            </span>  
+                        </button>
+                    </div>
+                   
                 </div>
 
             </div>
@@ -133,6 +146,48 @@
 <!-- myfooter end -->
 
 <script type="text/javascript">
+    
+    var page = 2
+    var limit = {{.Articles | len}}
+    var start = (page - 1) * limit 
+    function nextPage() {
+        page += 1
+        start = (page - 1) * limit 
+    }
+    function changestatus(hide) {
+        if (hide == true) {
+            $(".more").hide()
+            $(".loading").show()
+            return
+        }
+        $(".more").show()
+        $(".loading").hide()
+    }
+    function loadMore() {
+        var target = $(this.event.currentTarget)
+        changestatus(true)
+        target.prop("disabled",true)
+        $.ajax({
+            url: '/api/v1/article/findNewArticles/' + start +'/' + limit,
+            type: "GET",
+            success: function(data) {
+                if (data.trim() == "") {
+                    target.hide()
+                    return
+                }
+                changestatus(false)
+                target.prop("disabled",false)
+                nextPage()
+                $(".index-new-articles").append(data)
+            },
+            statusCode: {
+                308: function() {
+                    window.location.href = '/login.html?ran=' + Math.random();
+                }
+            }
+        });
+    }
+
     //footer位置设置
     function footerPosition() {
         $("footer").removeClass("fixed-footer");

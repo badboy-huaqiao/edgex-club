@@ -41,6 +41,7 @@ func init() {
 
 	commentTplPath := TemplPathPrefix + "comment.tpl"
 	replyTplPath := TemplPathPrefix + "reply.tpl"
+	articleListTplPath := TemplPathPrefix + "articles.tpl"
 
 	errorTplPath := TemplPathPrefix + "error.html"
 
@@ -52,6 +53,7 @@ func init() {
 
 	commentTpl := template.New(commentTplPath).Funcs(funcs)
 	replyTpl := template.New(replyTplPath).Funcs(funcs)
+	articleListTpl := template.New(articleListTplPath).Funcs(funcs)
 
 	// all, err := template.ParseGlob(TemplPathPrefix + ".html")
 
@@ -63,6 +65,7 @@ func init() {
 
 	TemplateStore["commentTpl"] = template.Must(commentTpl.ParseFiles(commentTplPath))
 	TemplateStore["replyTpl"] = template.Must(replyTpl.ParseFiles(replyTplPath))
+	TemplateStore["articleListTpl"] = template.Must(articleListTpl.ParseFiles(articleListTplPath))
 	TemplateStore["errorTpl"] = template.Must(template.ParseFiles(errorTplPath))
 }
 

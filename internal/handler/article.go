@@ -247,7 +247,7 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Println("用户：" + creds.Name + " 发起了评论")
+
 	go func() {
 		articleUserName := repo.ArticleRepositotyClient().FindArticleUserByArticleId(articleId)
 		message(articleUserName, creds.Name, articleId, articleUserName, "comment")
@@ -259,14 +259,25 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 
 func FindNewArticles(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	articles, err := repo.ArticleRepositotyClient().FetchAll()
+	var articles []model.Article
+	err := func() error {
+		var err error
+		vars := mux.Vars(r)
+		start, err := strconv.Atoi(vars["start"])
+		limit, err := strconv.Atoi(vars["limit"])
+		articles, err = repo.ArticleRepositotyClient().FetchPageAll(start, limit)
+		return err
+	}()
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	result, _ := json.Marshal(&articles)
-	w.Header().Set(ContentType, ContentTypeJSON)
-	w.Write(result)
+
+	t := core.TemplateStore["articleListTpl"]
+	if err := t.ExecuteTemplate(w, "articleList", articles); err != nil {
+		log.Println(err.Error())
+	}
 }
 
 func FindAllArticlesByUser(w http.ResponseWriter, r *http.Request) {

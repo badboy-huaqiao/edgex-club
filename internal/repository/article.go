@@ -16,6 +16,7 @@ type ArticleRepositoty interface {
 	Create(article model.Article) (id string, err error)
 	UpdateOne(id string, a model.Article) error
 	FetchAll() (articles []model.Article, err error)
+	FetchPageAll(start int, limit int) (articles []model.Article, err error)
 	ExistsByUserId(articleId string, userId string) (bool, error)
 	FindOne(userName string, articleId string) (a model.Article, err error)
 	FindArticleUserByArticleId(articleId string) string
@@ -31,14 +32,25 @@ func ArticleRepositotyClient() ArticleRepositoty {
 	return &defaultArticleRepositoty{}
 }
 
-// func (as *ArticleRepositoty2) FindNewArticles() []model.Article {
-// 	ds := DS.DataStore()
-// 	defer ds.S.Close()
-// 	articles := make([]model.Article, 0)
-// 	col := ds.S.DB(EdgeXClubDB).C(ArticleTable)
-// 	col.Find(bson.M{"approved": true}).Sort("-created").Limit(50).All(&articles)
-// 	return articles
-// }
+func (as *defaultArticleRepositoty) FetchPageAll(start int, limit int) (articles []model.Article, err error) {
+	ds := DS.DataStore()
+	defer ds.S.Close()
+	col := ds.S.DB(EdgeXClubDB).C(ArticleTable)
+	// if start == "" {
+	// 	if err = col.Find(bson.M{"approved": true}).Sort("-created").Limit(limit).All(&articles); err != nil {
+	// 		return nil, err
+	// 	}
+	// 	return articles, nil
+	// }
+	// if err = col.Find(bson.M{"_id": bson.M{"$gt": bson.ObjectIdHex(start)}, "approved": true}).Sort("-created").Limit(limit).All(&articles); err != nil {
+	// 	return nil, err
+	// }
+
+	if err = col.Find(bson.M{"approved": true}).Sort("-created").Skip(start).Limit(limit).All(&articles); err != nil {
+		return nil, err
+	}
+	return articles, nil
+}
 
 func (as *defaultArticleRepositoty) FetchAll() (articles []model.Article, err error) {
 	ds := DS.DataStore()

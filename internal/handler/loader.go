@@ -53,7 +53,7 @@ func renderTemplate(w http.ResponseWriter, name string, template string, data *p
 
 func LoadIndexPage(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	articles, _ := repo.ArticleRepositotyClient().FetchAll()
+	articles, _ := repo.ArticleRepositotyClient().FetchPageAll(0, 2)
 	hotAuthors, _ := repo.ArticleRepositotyClient().HotAuthor()
 	hotArticles, _ := repo.ArticleRepositotyClient().HotArticle()
 	data := &pageDataPayload{

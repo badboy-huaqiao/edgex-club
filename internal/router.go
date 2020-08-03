@@ -53,7 +53,7 @@ func InitRouter() http.Handler {
 	//发表文章
 	s.HandleFunc("/auth/article/{userId}", handler.SaveNewArticle).Methods("POST")
 	//首页加载最新发表的文章
-	s.HandleFunc("/article/findNewArticles", handler.FindNewArticles).Methods("GET")
+	s.HandleFunc("/article/findNewArticles/{start}/{limit}", handler.FindNewArticles).Methods("GET")
 
 	//加载用户所有文章，包括已审核和未审核
 	s.HandleFunc("/auth/article/{userId}/all", handler.FindAllArticlesByUser).Methods("GET")
