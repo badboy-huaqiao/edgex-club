@@ -5,11 +5,8 @@
 
 {{define "head"}}
 
-<title>{{.UserInof.Name}}的主页</title>
+<title>{{.UserInfo.Name}}的主页</title>
 <link rel="shortcut icon" type="image/x-icon" href="/public/img/bg_img.png" style="width:62px;height:62px;" />
-<link href="/public/vendors/markdown/editor/css/editormd.min.css" rel="stylesheet">
-<link href="/public/vendors/markdown/editor/css/editormd.preview.min.css" rel="stylesheet">
-
 <style media="screen">
 
 </style>
@@ -23,9 +20,9 @@
                 <div class="card-header">作者信息</div>
                 <div class="card-body">
                     <div class="media">
-                        <img src="{{.UserInof.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="">
+                        <img src="{{.UserInfo.AvatarUrl}}" class="mr-3 rounded-circle" style="width:45px;height:45px; " alt="">
                         <div class="media-body">
-                            <h5 class="card-title">{{.UserInof.Name}}</h5>
+                            <h5 class="card-title">{{.UserInfo.Name}}</h5>
                             <p class="card-text">文章&nbsp;&nbsp;{{.UserArticlesSum}}</p>
                         </div>
                     </div>
@@ -38,25 +35,42 @@
                 <div class="card-header">
                     消息
                 </div>
-                <div class="list-group list-group-flush">
+                <div class="list-group list-group-flush msg-list-main">
                     {{range $key,$msg := .Messages}}
                     <div  class="list-group-item list-group-item-action">
-                            <a href="#" onclick="updateMsgAndSkip({{$msg.ArticleUserName}},{{$msg.ArticleId}},{{$msg.Id}})">{{$msg.Content}}</a>
-                            <span class="pull-right">
-                                {{if $msg.IsRead }}
-                                <span class="badge badge-pill badge-secondary">已读</span> 
-                                {{else}} 
-                                <span class="badge badge-pill badge-danger">未读</span>
-                                {{end}}
-                                <span class="badge badge-pill badge-success">{{$msg.Created | fdate}}</span>
-                            </span>
-                            
-                    </div> {{end}}
+                        <a href="#" onclick="updateMsgAndSkip({{$msg.ArticleUserName}},{{$msg.ArticleId}},{{$msg.Id}})">{{$msg.Content}}</a>
+                        <span class="pull-right">
+                            {{if $msg.IsRead }}
+                            <span class="badge badge-pill badge-secondary">已读</span> 
+                            {{else}} 
+                            <span class="badge badge-pill badge-danger">未读</span>
+                            {{end}}
+                            <span class="badge badge-pill badge-success">{{$msg.Created | fdate}}</span>
+                        </span>
+                    </div> 
+                    {{end}}
+                </div>
+                 <div class="card">
+                    <button type="button" class="btn btn-info btn-sm pull-right" onclick="loadMsgMore()">
+                        <span class="more">更多...</span>
+                        <span class="loading" style="display:none;">
+                            <span class="spinner-grow spinner-grow-sm text-warning" role="status" aria-hidden="true"></span>
+                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                            <span class="spinner-grow spinner-grow-sm text-light" role="status" aria-hidden="true"></span>
+                            加载中...
+                        </span>  
+                    </button>
                 </div>
             </div>
             {{ end }}
             <div class="card" style="margin-top: 10px;">
                 <div class="card-header">文章</div>
+                {{$length := .Articles | len }}
+                {{if eq 0 $length }}
+                <div class="alert alert-danger" role="alert">
+                    作者很懒！还没有分享过任何技术资料，又或者分享的技术文章还没有通过审核！
+                </div>
+                {{end}}
                 <div class="list-group list-group-flush">
                     {{range $key,$article := .Articles}}
                     <div class="list-group-item list-group-item-action">
@@ -66,7 +80,7 @@
                                 <h5 class="mt-0 mb-1"><a class="text-dark" href="/user/{{$article.UserName}}/article/{{$article.Id.Hex}}" target="_blank">{{$article.Title}}</a></h5>
                                 <span class="badge badge-success">{{$article.Type}}</span>&nbsp;&nbsp;
                                 <span class="badge badge-secondary">创建{{$article.Created | fdate}}</span>&nbsp;&nbsp;
-                                <span class="badge badge-info">最后更新{{$article.Created | fdate}}
+                                <span class="badge badge-info">最后更新{{$article.Created | fdate}}</span>
                                 {{ if $.IsSelf }}
                                 <span class="pull-right">
                                     {{if $article.Approved }}
@@ -101,20 +115,65 @@
     </div>
 </div>
 
-    <script type="text/javascript">
+<script type="text/javascript">
 
-        function updateMsgAndSkip(articleUserName,articleId,msgId) {
-            $(this.event.currentTarget).css("pointer-events", "none")
-            $('#waitModal').modal('show');
-            $.ajax({
-                url: "/api/v1/auth/message/" + msgId,
-                type: "PUT",
-                success: function() {
-                    window.location.href = "/user/"+articleUserName+"/article/"+articleId
-                }
-            });  
+    function updateMsgAndSkip(articleUserName,articleId,msgId) {
+        $(this.event.currentTarget).css("pointer-events", "none")
+        $('#waitModal').modal('show');
+        $.ajax({
+            url: "/api/v1/auth/message/" + msgId,
+            type: "PUT",
+            success: function() {
+                window.location.href = "/user/"+articleUserName+"/article/"+articleId
+            }
+        });  
+    }
+
+</script>
+
+{{ if .IsSelf }}
+<script type="text/javascript">
+    var page = 2
+    var limit = {{.Messages | len}}
+    var start = (page - 1) * limit 
+    function nextPage() {
+        page += 1
+        start = (page - 1) * limit 
+    }
+    function changestatus(hide) {
+        if (hide == true) {
+            $(".more").hide()
+            $(".loading").show()
+            return
         }
-    
-    </script>
+        $(".more").show()
+        $(".loading").hide()
+    }
+    function loadMsgMore() {
+        var target = $(this.event.currentTarget)
+        changestatus(true)
+        target.prop("disabled",true)
+        $.ajax({
+            url: '/api/v1/auth/message/{{.UserInfo.Name}}/'+ start +'/' + limit,
+            type: "GET",
+            success: function(data) {
+                if (data.trim() == "") {
+                    target.hide()
+                    return
+                }
+                changestatus(false)
+                target.prop("disabled",false)
+                nextPage()
+                $(".msg-list-main").append(data)
+            },
+            statusCode: {
+                308: function() {
+                    window.location.href = '/login.html?ran=' + Math.random();
+                }
+            }
+        });
+    }
+</script>
+{{end}}
 
-    {{end}}
+{{end}}

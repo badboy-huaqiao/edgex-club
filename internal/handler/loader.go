@@ -9,6 +9,7 @@ import (
 	repo "edgex-club/internal/repository"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	mux "github.com/gorilla/mux"
 )
@@ -31,7 +32,7 @@ type pageDataPayload struct {
 	Comments        []model.Comment
 	ReplysMap       map[string][]model.Reply
 	Messages        []model.Message
-	UserInof        userInfo
+	UserInfo        userInfo
 }
 
 func renderTemplate(w http.ResponseWriter, name string, template string, data *pageDataPayload, creds *model.Credentials) {
@@ -53,7 +54,7 @@ func renderTemplate(w http.ResponseWriter, name string, template string, data *p
 
 func LoadIndexPage(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	articles, _ := repo.ArticleRepositotyClient().FetchPageAll(0, 2)
+	articles, _ := repo.ArticleRepositotyClient().FetchPageAll(0, 5)
 	hotAuthors, _ := repo.ArticleRepositotyClient().HotAuthor()
 	hotArticles, _ := repo.ArticleRepositotyClient().HotArticle()
 	data := &pageDataPayload{
@@ -119,7 +120,7 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 
 	if creds != nil && creds.Name == userName {
 		self = true
-		if msgs, err = repo.MessageRepositotyClient().FetchAllByUserName(creds.Name); err != nil {
+		if msgs, err = repo.MessageRepositotyClient().FetchPageAllByUserName(creds.Name, 0, 5); err != nil {
 			http.Redirect(w, r, "/error", http.StatusTemporaryRedirect)
 			return
 		}
@@ -141,7 +142,7 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 		Articles:        articles,
 		Messages:        msgs,
 		IsSelf:          self,
-		UserInof: userInfo{
+		UserInfo: userInfo{
 			Id:        u.Id.Hex(),
 			Name:      userName,
 			AvatarUrl: u.AvatarUrl,
@@ -149,4 +150,20 @@ func LoadUserHomePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderTemplate(w, "userhome", "base", data, creds)
+}
+
+func LoadMessagesListTpl(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	vars := mux.Vars(r)
+	userName := vars["userName"]
+	start, _ := strconv.Atoi(vars["start"])
+	limit, _ := strconv.Atoi(vars["limit"])
+	msgs, err := repo.MessageRepositotyClient().FetchPageAllByUserName(userName, start, limit)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	t := core.TemplateStore["msgListTpl"]
+	t.ExecuteTemplate(w, "messagesList", msgs)
 }

@@ -12,6 +12,7 @@ type MessageRepositoty interface {
 	Create(model.Message) (id string, err error)
 	Update(id string) error
 	FetchAllByUserName(userName string) (msgs []model.Message, err error)
+	FetchPageAllByUserName(userName string, start, limit int) (msgs []model.Message, err error)
 	MsgSumByUserName(userName string) (int, error)
 }
 type defaultMessageRepositoty struct{}
@@ -48,6 +49,16 @@ func (*defaultMessageRepositoty) FetchAllByUserName(userName string) (msgs []mod
 	defer ds.S.Close()
 	collection := ds.S.DB(EdgeXClubDB).C(MsgTable)
 	if err = collection.Find(bson.M{"toUserName": userName}).Sort("-created").Limit(50).All(&msgs); err != nil {
+		return nil, err
+	}
+	return msgs, nil
+}
+
+func (*defaultMessageRepositoty) FetchPageAllByUserName(userName string, start, limit int) (msgs []model.Message, err error) {
+	ds := DS.DataStore()
+	defer ds.S.Close()
+	collection := ds.S.DB(EdgeXClubDB).C(MsgTable)
+	if err = collection.Find(bson.M{"toUserName": userName}).Skip(start).Limit(limit).Sort("-created").All(&msgs); err != nil {
 		return nil, err
 	}
 	return msgs, nil

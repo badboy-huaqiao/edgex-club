@@ -32,7 +32,7 @@ func InitRouter() http.Handler {
 	//更新消息状态，已读、未读
 	s.HandleFunc("/auth/message/{id}", handler.UpdateMessage).Methods("PUT")
 	//find 用户所有消息
-	s.HandleFunc("/auth/message/{userName}", handler.FindAllMessage).Methods("GET")
+	s.HandleFunc("/auth/message/{userName}/{start}/{limit}", handler.LoadMessagesListTpl).Methods("GET")
 	//未读消息总数
 	s.HandleFunc("/auth/message/{userName}/count", handler.FindAllMessageCount).Methods("GET")
 

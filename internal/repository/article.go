@@ -46,7 +46,7 @@ func (as *defaultArticleRepositoty) FetchPageAll(start int, limit int) (articles
 	// 	return nil, err
 	// }
 
-	if err = col.Find(bson.M{"approved": true}).Sort("-created").Skip(start).Limit(limit).All(&articles); err != nil {
+	if err = col.Find(bson.M{"approved": true}).Skip(start).Limit(limit).Sort("-created").All(&articles); err != nil {
 		return nil, err
 	}
 	return articles, nil
