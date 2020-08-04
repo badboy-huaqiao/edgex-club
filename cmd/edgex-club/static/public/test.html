@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>注册</title>
+    <script type="text/javascript" src="/public/vendors/jquery/jquery.min.js"></script>
+</head>
+
+<body>
+    <img src="https://www.edgexfoundry.club/user/huaqiaoz">
+    <h1>注册</h1>
+</body>
+<script>
+    (function() {
+        $.ajax({
+            url: "https://www.edgexfoundry.club/api/v1/auth/message/1111",
+            type: "PUT",
+            success: function() {
+                window.location.href = "/user/" + articleUserName + "/article/" + articleId
+            },
+            error: function(data) {
+                alert(data)
+            }
+        });
+    }())
+</script>
+
+</html>

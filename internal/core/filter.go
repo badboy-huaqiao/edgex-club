@@ -11,9 +11,20 @@ import (
 	"strings"
 )
 
+const (
+	referer_HTTPS string = "https://www.edgexfoundry.club"
+	referer_HTTP  string = "http://www.edgexfoundry.club"
+)
+
 func GeneralFilter(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
+		// referer := r.Header.Get("Referer")
+
+		// if !strings.HasPrefix(referer, referer_HTTPS) || !strings.HasPrefix(referer, referer_HTTP) {
+		// 	http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+		// 	return
+		// }
 
 		if path == "/login.html" || path == "/redirect.html" {
 			http.FileServer(http.Dir("static")).ServeHTTP(w, r)

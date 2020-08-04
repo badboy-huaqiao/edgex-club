@@ -94,9 +94,12 @@ func LoginByGitHubCallback(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "Authorization",
 		Value:    token,
+		Domain:   "edgexfoundry.club",
+		SameSite: http.SameSiteStrictMode,
 		HttpOnly: true,
 		Path:     "/",
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
+		// MaxAge:   time.Now().Add(7 * 24 * time.Hour),
 	})
 	http.Redirect(w, r, userPrePage, http.StatusTemporaryRedirect)
 }
