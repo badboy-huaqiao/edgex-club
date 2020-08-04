@@ -66,7 +66,7 @@ func LoginByGitHubCallback(w http.ResponseWriter, r *http.Request) {
 		AvatarUrl: githubUserInfo.Avatar_url,
 	}
 	u, err := repo.UserRepositoryClient().FetchOneByGitHub(user.GitHubId)
-	if err == nil {
+	if err != nil {
 		repo.UserRepositoryClient().Add(user)
 		log.Println("user not exist, it's a new user,save to db.")
 	} else if u.AvatarUrl != user.AvatarUrl {
