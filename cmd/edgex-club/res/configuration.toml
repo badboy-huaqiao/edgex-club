@@ -1,11 +1,12 @@
 [Service]
 Host = "localhost"
-JWTPrivKey = "res/rsa/app.rsa"
-JWTPubKey = "res/rsa/app.rsa.pub"
-Labels = ["edgex club"]
-OpenMsg = "edgex club server started"
+Labels = ["edgex-club"]
 Port = 8080
+StartupMsg = "edgex club server started."
 StaticResourcePath = "./static"
+
+[Env]
+Prod = false
 
 [Database]
 DatabaseName = "edgex-club"
@@ -15,6 +16,9 @@ Port = 8080
 Username = ""
 
 [Certificate]
-CertPath = "res/tls/"
-Crt = "res/tls/edgex-club-nginx.crt"
-Key = "res/tls/edgex-club-nginx.key"
+Crt = ""
+Key = ""
+
+[GitHub]
+ClientId = ""
+Secret = ""

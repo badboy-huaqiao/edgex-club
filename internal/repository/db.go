@@ -5,7 +5,6 @@ package repository
 
 import (
 	"edgex-club/internal/config"
-	"fmt"
 	"time"
 
 	"gopkg.in/mgo.v2"
@@ -32,11 +31,11 @@ func (ds *DataStore) DataStore() *DataStore {
 
 func DBConnect() error {
 	mongoDBDialInfo := &mgo.DialInfo{
-		Addrs:    []string{fmt.Sprintf("%s:%d", config.Config.Database.Host, config.Config.Database.Port)},
+		Addrs:    []string{config.Conf().DBAddr()},
 		Timeout:  time.Duration(5000) * time.Millisecond,
-		Database: config.Config.Database.DatabaseName,
-		Username: config.Config.Database.Username,
-		Password: config.Config.Database.Password,
+		Database: config.Conf().Database().DatabaseName,
+		Username: config.Conf().Database().Username,
+		Password: config.Conf().Database().Password,
 	}
 	s, err := mgo.DialWithInfo(mongoDBDialInfo)
 	if err != nil {

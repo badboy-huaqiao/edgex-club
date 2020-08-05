@@ -5,68 +5,63 @@ package main
 
 import (
 	"edgex-club/internal"
-	"edgex-club/internal/authorization"
 	"edgex-club/internal/config"
 	"edgex-club/internal/core"
 	"edgex-club/internal/repository"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 )
 
 func main() {
-
 	confpath := flag.String("confpath", "res/configuration.toml", "配置文件路径")
-	isProd := flag.Bool("prod", false, "如果不是生产环境，默认不会启动TLS服务")
 	flag.Parse()
-
-	err := config.InitConfig(*confpath)
-	if err != nil {
+	if err := config.InitConfig(*confpath); err != nil {
 		log.Println("Cann't parse config file, exit!")
 		return
 	}
-
-	r := internal.InitRouter()
-
-	if err = repository.DBConnect(); err != nil {
-		log.Fatalf("connect to db error: %s", err.Error())
+	if err := repository.DBConnect(); err != nil {
+		log.Fatalf("connect to db error: %s\n", err.Error())
+		return
 	}
 	log.Println("Success connect to db!")
 
-	authorization.InitAuth()
+	// authorization.InitAuth()
 
 	//用户访问限制功能，定时清除3分钟内已经被锁定的用户，
 	//防止map缓存越过内存边界
 	// go core.CleanupVisitors()
 
-	if *isProd {
-		go func() {
+	r := internal.InitRouter()
 
+	if config.Conf().Env().Prod {
+		go func() {
 			server := &http.Server{
 				Handler:      core.GeneralFilter(core.Limit(r)),
-				Addr:         ":443",
+				Addr:         fmt.Sprintf(":%d", config.Conf().Service().Port),
 				WriteTimeout: 15 * time.Second,
 				ReadTimeout:  15 * time.Second,
 			}
 			log.Println("TLS Server Listen On Port: 443")
-			log.Fatal(server.ListenAndServeTLS(config.Config.Certificate.Crt, config.Config.Certificate.Key))
+			log.Fatal(server.ListenAndServeTLS(config.Conf().Crt().Crt, config.Conf().Crt().Key))
 		}()
-		log.Println("Server Listen On Port: 8080")
-		if err := http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, "https://www.edgexfoundry.club"+r.RequestURI, http.StatusMovedPermanently)
+		log.Println("Server Listen On Port: 80")
+		if err := http.ListenAndServe(":80", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			dest := fmt.Sprintf("https://www.edgexfoundry.club%s", r.RequestURI)
+			http.Redirect(w, r, dest, http.StatusMovedPermanently)
 		})); err != nil {
-			log.Fatalf("ListenAndServe error: %v", err)
+			log.Fatalf("ListenAndServe error: %s\n", err.Error())
 		}
 	} else {
-
 		server := &http.Server{
 			Handler:      core.GeneralFilter(r),
-			Addr:         ":8080",
+			Addr:         fmt.Sprintf(":%d", config.Conf().Service().Port),
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
 		}
-		log.Println("Dev Server Listen On Port: 8080")
+		log.Printf("Dev Server Listen On Port: %d\n", config.Conf().Service().Port)
 		log.Fatal(server.ListenAndServe())
 	}
 

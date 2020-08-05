@@ -4,40 +4,40 @@
 package authorization
 
 import (
-	"edgex-club/internal/config"
 	"edgex-club/internal/model"
-	"io/ioutil"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 )
 
-var mySigningKey = []byte("AllYourBase")
+var mySigningKey = []byte(fmt.Sprintf("edgex-club-%s", uuid.New().String()))
 
 type CustomClaims struct {
 	model.Credentials `json:"credentials"`
 	jwt.StandardClaims
 }
 
-var (
-	verifyKey, signKey []byte
-)
+// var (
+// 	verifyKey, signKey []byte
+// )
 
-func InitAuth() {
-	var err error
+// func InitAuth() {
+// 	var err error
 
-	signKey, err = ioutil.ReadFile(config.Config.Service.JWTPrivKey)
-	if err != nil {
-		log.Fatal("Error reading jwt rsa private key")
-		return
-	}
-	verifyKey, err = ioutil.ReadFile(config.Config.Service.JWTPubKey)
-	if err != nil {
-		log.Fatal("Error reading jwt rsa public key")
-		return
-	}
-}
+// 	signKey, err = ioutil.ReadFile(config.Config.Service.JWTPrivKey)
+// 	if err != nil {
+// 		log.Fatal("Error reading jwt rsa private key")
+// 		return
+// 	}
+// 	verifyKey, err = ioutil.ReadFile(config.Config.Service.JWTPubKey)
+// 	if err != nil {
+// 		log.Fatal("Error reading jwt rsa public key")
+// 		return
+// 	}
+// }
 
 func NewToken(creds model.Credentials) (token string, err error) {
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
@@ -52,7 +52,7 @@ func NewToken(creds model.Credentials) (token string, err error) {
 
 	token, err = jwtToken.SignedString(mySigningKey)
 	if err != nil {
-		log.Printf("创建JWT token签名失败：%v", err.Error())
+		log.Printf("创建JWT token签名失败：%s\n", err.Error())
 		return "", err
 	}
 	return token, err

@@ -1,19 +1,24 @@
 [Service]
 Host = "edgexfoundry.club"
-JWTKey = "edgexfoundry.club"
-Labels = ["edgex club"]
-OpenMsg = "edgex club server started"
-Port = 8080
+Labels = ["edgex-club"]
+Port = 443
+StartupMsg = "edgex club server started."
 StaticResourcePath = "./static"
+
+[Env]
+Prod = true
 
 [Database]
 DatabaseName = "edgex-club"
 Host = "localhost"
 Password = ""
-Port = 8500
+Port = 0
 Username = ""
 
 [Certificate]
-CertPath = "res/tls"
-Crt = "edgex-club-nginx.crt"
-Key = "edgex-club-nginx.key"
+Crt = "res/tls/edgex-club-nginx.crt"
+Key = "res/tls/edgex-club-nginx.key"
+
+[GitHub]
+ClientId = ""
+Secret = ""

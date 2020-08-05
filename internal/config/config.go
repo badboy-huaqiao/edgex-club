@@ -4,23 +4,22 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
 )
 
-type Service struct {
+type service struct {
 	Host                      string   `toml:"Host"`
 	Port                      int      `toml:"Port"`
 	Labels                    []string `toml:"Labels"`
 	StartupMsg                string   `toml:"StartupMsg"`
 	DefaultStaticResourcePath string   `toml:"DefaultStaticResourcePath"`
-	JWTPrivKey                string   `toml:"JWTPrivKey"`
-	JWTPubKey                 string   `toml:"JWTPubKey"`
 }
 
-type Database struct {
+type database struct {
 	Host         string `toml:"Host"`
 	Port         int    `toml:"Port"`
 	DatabaseName string `toml:"DatabaseName"`
@@ -28,29 +27,60 @@ type Database struct {
 	Password     string `toml:"Password"`
 }
 
-type Configuration struct {
-	Service     Service     `toml:"Service"`
-	Database    Database    `toml:"Database"`
-	Certificate Certificate `toml:"Certificate"`
+type certificate struct {
+	Crt string `toml:"Crt"`
+	Key string `toml:"Key"`
 }
 
-type Certificate struct {
-	CertPath string `toml:"CertPath"`
-	Crt      string `toml:"Crt"`
-	Key      string `toml:"Key"`
+type github struct {
+	ClientId string `toml:"ClientId"`
+	Secret   string `toml:"Secret"`
 }
 
-var Config *Configuration
+type configuration struct {
+	ServiceConf     service     `toml:"Service"`
+	DatabaseConf    database    `toml:"Database"`
+	CertificateConf certificate `toml:"Certificate"`
+	EnvConf         env         `toml:"Env"`
+}
+
+type env struct {
+	Prod bool
+}
+
+var config *configuration
+
+func Conf() *configuration {
+	return config
+}
+
+func (c *configuration) Service() service {
+	return c.ServiceConf
+}
+
+func (c *configuration) Database() database {
+	return c.DatabaseConf
+}
+
+func (c *configuration) DBAddr() string {
+	return fmt.Sprintf("%s:%d", c.Database().Host, c.Database().Port)
+}
+
+func (c *configuration) Crt() certificate {
+	return c.CertificateConf
+}
+
+func (c *configuration) Env() env {
+	return c.EnvConf
+}
 
 func InitConfig(path string) error {
-	c := &Configuration{}
+	c := &configuration{}
 	absPath, _ := filepath.Abs(path)
 	if _, err := toml.DecodeFile(absPath, c); err != nil {
-		log.Printf("Decode Config File Error:%v", err)
+		log.Printf("Decode config file error: %s\n", err.Error())
 		return err
 	}
-
-	Config = c
-
+	config = c
 	return nil
 }
