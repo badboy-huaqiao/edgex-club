@@ -6,6 +6,7 @@ package handler
 import (
 	"bytes"
 	"edgex-club/internal/authorization"
+	"edgex-club/internal/config"
 	"edgex-club/internal/model"
 	repo "edgex-club/internal/repository"
 	"encoding/json"
@@ -107,8 +108,8 @@ func LoginByGitHubCallback(w http.ResponseWriter, r *http.Request) {
 func getGithubTokenByCode(code string) (string, error) {
 	url := "https://github.com/login/oauth/access_token"
 	reqBody := map[string]string{
-		"client_id":     "8dc598397ad0cc13bed8",
-		"client_secret": "5d4ceb59b837b846cfd5ce7416af5dbc8a89b241",
+		"client_id":     config.Conf().GitHub().ClientId,
+		"client_secret": config.Conf().GitHub().Secret,
 		"code":          code,
 	}
 

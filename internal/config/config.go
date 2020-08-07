@@ -42,6 +42,7 @@ type configuration struct {
 	DatabaseConf    database    `toml:"Database"`
 	CertificateConf certificate `toml:"Certificate"`
 	EnvConf         env         `toml:"Env"`
+	GitHubConf      github      `toml:"GitHub"`
 }
 
 type env struct {
@@ -72,6 +73,10 @@ func (c *configuration) Crt() certificate {
 
 func (c *configuration) Env() env {
 	return c.EnvConf
+}
+
+func (c *configuration) GitHub() github {
+	return c.GitHubConf
 }
 
 func InitConfig(path string) error {
