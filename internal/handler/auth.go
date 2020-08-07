@@ -92,14 +92,14 @@ func LoginByGitHubCallback(w http.ResponseWriter, r *http.Request) {
 	log.Printf("User [id=%s,githubId=%s,avatarUrl=%s] login.\n", u.Id.Hex(), u.GitHubId, u.AvatarUrl)
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "Authorization",
-		Value:    token,
-		Domain:   "edgexfoundry.club",
+		Name:  "Authorization",
+		Value: token,
+		// Domain:   "edgexfoundry.club",
 		SameSite: http.SameSiteStrictMode,
 		HttpOnly: true,
-		Path:     "/",
-		Expires:  time.Now().Add(7 * 24 * time.Hour),
-		// MaxAge:   time.Now().Add(7 * 24 * time.Hour),
+		//Path:     "/",
+		Expires: time.Now().Add(7 * 24 * time.Hour),
+		MaxAge:  int(time.Now().Add(7*24*time.Hour).UnixNano() / 1000000),
 	})
 	http.Redirect(w, r, userPrePage, http.StatusTemporaryRedirect)
 }

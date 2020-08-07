@@ -5,6 +5,7 @@ package core
 
 import (
 	"edgex-club/internal/authorization"
+	"edgex-club/internal/config"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -19,12 +20,6 @@ const (
 func GeneralFilter(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		// referer := r.Header.Get("Referer")
-
-		// if !strings.HasPrefix(referer, referer_HTTPS) || !strings.HasPrefix(referer, referer_HTTP) {
-		// 	http.Error(w, "Unauthorized.", http.StatusUnauthorized)
-		// 	return
-		// }
 
 		if path == "/login.html" || path == "/redirect.html" {
 			http.FileServer(http.Dir("static")).ServeHTTP(w, r)
@@ -48,6 +43,15 @@ func GeneralFilter(next http.Handler) http.Handler {
 		//检测认证API是否携带有效jwt token
 		if strings.HasPrefix(path, "/api/v1/auth") {
 			if !ok {
+
+				if config.Conf().Env().Prod {
+					referer := r.Header.Get("Referer")
+					if !strings.HasPrefix(referer, referer_HTTPS) || !strings.HasPrefix(referer, referer_HTTP) {
+						http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+						return
+					}
+				}
+
 				//ajax 请求
 				if r.Header.Get("x-requested-with") != "" {
 					http.Error(w, "Unauthorized.", http.StatusUnauthorized)
